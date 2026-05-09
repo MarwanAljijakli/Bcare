@@ -5,6 +5,8 @@ import { expect, test } from '@playwright/test';
 // without serious / critical axe violations, and to expose the right
 // locale + dir attributes on <html>.
 
+// /signup, /login, /reset-password covered by web/e2e/auth.spec.ts under
+// the (auth) route group — keep them out of this list.
 const ROUTES = [
   '',
   '/how-it-works',
@@ -13,8 +15,6 @@ const ROUTES = [
   '/about',
   '/team',
   '/security',
-  '/signup',
-  '/login',
   '/privacy',
   '/terms',
   '/accessibility',
