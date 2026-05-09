@@ -1,0 +1,53 @@
+{
+  "common": {
+    "appName": "BlueCare",
+    "tagline": "Smart, personalized communication for children with autism",
+    "languageSwitcher": {
+      "label": "Language",
+      "switchTo": "Switch to {language}",
+      "english": "English",
+      "arabic": "العربية"
+    },
+    "themeSwitcher": {
+      "label": "Theme",
+      "light": "Light",
+      "dark": "Dark",
+      "highContrast": "High contrast"
+    },
+    "skipToMain": "Skip to main content",
+    "loading": "Loading…",
+    "error": {
+      "title": "Something went wrong",
+      "description": "Please try again. If the problem continues, contact support.",
+      "retry": "Try again",
+      "goHome": "Return home"
+    },
+    "notFound": {
+      "title": "Page not found",
+      "description": "The page you're looking for doesn't exist or has moved.",
+      "goHome": "Return home"
+    }
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "howItWorks": "How it works",
+    "forCaregivers": "For caregivers",
+    "forTherapists": "For therapists",
+    "pricing": "Pricing",
+    "contact": "Contact",
+    "login": "Sign in",
+    "signup": "Get started"
+  },
+  "marketing": {
+    "landing": {
+      "hero": {
+        "eyebrow": "Built with autism specialists",
+        "title": "Every child has something to say.",
+        "subtitle": "BlueCare helps non-verbal and minimally verbal children with autism communicate using symbols, voice, and gestures — in Arabic and English.",
+        "ctaPrimary": "Get started",
+        "ctaSecondary": "See how it works"
+      }
+    }
+  }
+}

@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import '../src/styles/tokens.css';
+
+/* ---------- base ---------- */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--color-border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-fg);
+    font-family:
+      'Inter',
+      'IBM Plex Sans Arabic',
+      system-ui,
+      -apple-system,
+      'Segoe UI',
+      sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Arabic gets the Arabic-tuned stack as the leader. */
+  :lang(ar) body,
+  [dir='rtl'] body {
+    font-family: 'IBM Plex Sans Arabic', 'Inter', system-ui, sans-serif;
+  }
+
+  /* Brand-blue, 4px ring with 2px offset — matches a11y.focusRingWidthPx token. */
+  :focus-visible {
+    outline: 4px solid var(--color-focus-ring);
+    outline-offset: 2px;
+    border-radius: 0.375rem;
+  }
+
+  /* Honor reduced motion globally. JS `useReducedMotion()` covers Framer Motion;
+   * this CSS rule covers everything else. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ---------- a11y utilities ---------- */
+
+@layer utilities {
+  /* sr-only — content available to assistive tech only. */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  /* Visible-on-focus skip link — first thing in tab order. */
+  .skip-link {
+    position: absolute;
+    inset-inline-start: 1rem;
+    top: -3rem;
+    z-index: 70;
+    background-color: var(--color-primary);
+    color: var(--color-primary-fg);
+    padding: 0.625rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: top 200ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  .skip-link:focus-visible {
+    top: 1rem;
+    outline: 4px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* Touch target floors as utilities — caregiver components ignore these,
+     child components must apply one. */
+  .touch-target-phone {
+    min-block-size: 4rem;
+    min-inline-size: 4rem;
+  }
+  .touch-target-tablet {
+    min-block-size: 5.5rem;
+    min-inline-size: 5.5rem;
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": false,
+    "noEmit": true,
+    "incremental": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "jsx": "preserve",
+    "plugins": [{ "name": "next" }],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/app/*": ["./app/*"],
+      "@bluecare/shared": ["../shared/index.ts"],
+      "@bluecare/shared/*": ["../shared/*"],
+      "@bluecare/db": ["../db/index.ts"],
+      "@bluecare/db/*": ["../db/*"]
+    },
+    "types": ["node", "@testing-library/jest-dom"]
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": [
+    "node_modules",
+    ".next",
+    "out",
+    "dist",
+    "playwright-report",
+    "test-results",
+    "storybook-static"
+  ]
+}

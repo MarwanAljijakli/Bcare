@@ -1,0 +1,92 @@
+/*
+ * Theme tokens, exposed as CSS variables. Each block corresponds to a `data-theme`
+ * value set on <html> by `next-themes`. Keys here must mirror the semantic token
+ * names declared in `shared/tokens.ts` (kebab-cased). `tokens.test.ts` enforces
+ * that contract.
+ */
+
+:root,
+[data-theme='light'] {
+  --color-bg: #f9fafb;
+  --color-bg-elevated: #ffffff;
+  --color-bg-muted: #f3f4f6;
+  --color-fg: #1e293b;
+  --color-fg-muted: #4b5563;
+  --color-fg-subtle: #6b7280;
+  --color-border: #e5e7eb;
+  --color-border-strong: #d1d5db;
+  --color-primary: #2b6cb0;
+  --color-primary-fg: #ffffff;
+  --color-primary-hover: #1e4e8c;
+  --color-accent: #a7f3d0;
+  --color-accent-fg: #14532d;
+  --color-secondary: #fef3c7;
+  --color-secondary-fg: #78350f;
+  --color-focus-ring: #2b6cb0;
+  --color-success: #16a34a;
+  --color-warning: #b45309;
+  --color-danger: #9f1239;
+  --color-child-bg: #f9fafb;
+  --color-child-tile: #ffffff;
+  --color-child-tile-hover: #eff6ff;
+  --color-child-tile-active: #dbeafe;
+  --color-child-tile-border: #e5e7eb;
+  --color-child-accent: #a7f3d0;
+}
+
+[data-theme='dark'] {
+  --color-bg: #0b1220;
+  --color-bg-elevated: #111a2e;
+  --color-bg-muted: #162038;
+  --color-fg: #e5e7eb;
+  --color-fg-muted: #9ca3af;
+  --color-fg-subtle: #6b7280;
+  --color-border: #1f2a44;
+  --color-border-strong: #2a375a;
+  --color-primary: #60a5fa;
+  --color-primary-fg: #0b1220;
+  --color-primary-hover: #93c5fd;
+  --color-accent: #86efac;
+  --color-accent-fg: #0a2e16;
+  --color-secondary: #fcd34d;
+  --color-secondary-fg: #451a03;
+  --color-focus-ring: #93c5fd;
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-danger: #fb7185;
+  --color-child-bg: #0b1220;
+  --color-child-tile: #162038;
+  --color-child-tile-hover: #1a2746;
+  --color-child-tile-active: #22335e;
+  --color-child-tile-border: #2a375a;
+  --color-child-accent: #86efac;
+}
+
+[data-theme='hc'] {
+  /* AAA on every text-on-bg pair; verified in tokens.test.ts */
+  --color-bg: #ffffff;
+  --color-bg-elevated: #ffffff;
+  --color-bg-muted: #f3f4f6;
+  --color-fg: #000000;
+  --color-fg-muted: #111827;
+  --color-fg-subtle: #1f2937;
+  --color-border: #000000;
+  --color-border-strong: #000000;
+  --color-primary: #0f2e55;
+  --color-primary-fg: #ffffff;
+  --color-primary-hover: #091d38;
+  --color-accent: #15803d;
+  --color-accent-fg: #ffffff;
+  --color-secondary: #92400e;
+  --color-secondary-fg: #ffffff;
+  --color-focus-ring: #0f2e55;
+  --color-success: #166534;
+  --color-warning: #92400e;
+  --color-danger: #7f1d1d;
+  --color-child-bg: #ffffff;
+  --color-child-tile: #ffffff;
+  --color-child-tile-hover: #f3f4f6;
+  --color-child-tile-active: #e5e7eb;
+  --color-child-tile-border: #000000;
+  --color-child-accent: #15803d;
+}
