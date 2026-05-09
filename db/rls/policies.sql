@@ -263,6 +263,67 @@ create policy waitlist_admin_read on public.waitlist_signups
   for select using (public.is_admin());
 
 -- =============================================================================
+-- therapist_invites  — caregivers manage their own; therapists read by code
+-- via a SECURITY DEFINER function rather than direct select
+-- =============================================================================
+alter table public.therapist_invites enable row level security;
+
+create policy therapist_invites_caregiver_select on public.therapist_invites
+  for select using (caregiver_id = auth.uid() and public.is_caregiver_of(child_id));
+
+create policy therapist_invites_caregiver_insert on public.therapist_invites
+  for insert with check (caregiver_id = auth.uid() and public.is_caregiver_of(child_id));
+
+create policy therapist_invites_caregiver_update on public.therapist_invites
+  for update using (caregiver_id = auth.uid()) with check (caregiver_id = auth.uid());
+
+create policy therapist_invites_admin_read on public.therapist_invites
+  for select using (public.is_admin());
+
+-- =============================================================================
+-- therapist_grants  — visible to both parties on the relation
+-- =============================================================================
+alter table public.therapist_grants enable row level security;
+
+create policy therapist_grants_caregiver_select on public.therapist_grants
+  for select using (caregiver_id = auth.uid());
+
+create policy therapist_grants_therapist_select on public.therapist_grants
+  for select using (therapist_id = auth.uid() and revoked_at is null);
+
+create policy therapist_grants_caregiver_update on public.therapist_grants
+  for update using (caregiver_id = auth.uid()) with check (caregiver_id = auth.uid());
+
+create policy therapist_grants_admin_read on public.therapist_grants
+  for select using (public.is_admin());
+
+-- Helper: returns true if the caller has an active grant for the given child.
+-- Module 2.B+ session-scoped tables reference this so therapists with a
+-- caregiver-issued grant can read sessions / progress / vocab / voices.
+create or replace function public.is_therapist_of(child uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.therapist_grants
+    where therapist_id = auth.uid()
+      and child_id = child
+      and revoked_at is null
+  );
+$$;
+
+-- =============================================================================
+-- draft_onboarding  — one row per user, owner-only access
+-- =============================================================================
+alter table public.draft_onboarding enable row level security;
+
+create policy draft_onboarding_self_all on public.draft_onboarding
+  for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- =============================================================================
 -- Triggers
 -- =============================================================================
 
@@ -285,6 +346,55 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
+
+-- Copy the consent attestation captured at signup
+-- (auth.users.raw_user_meta_data.consent — see web/app/api/auth/signup/route.ts)
+-- into a row in public.consent_records. Runs SECURITY DEFINER so RLS doesn't
+-- block the insert during the unauthenticated-but-just-created signup window.
+create or replace function public.copy_consent_to_records()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  consent_data jsonb;
+begin
+  consent_data := new.raw_user_meta_data->'consent';
+  if consent_data is null then
+    return new;
+  end if;
+  if (consent_data->>'granted')::boolean is distinct from true then
+    return new;
+  end if;
+  insert into public.consent_records (
+    granted_by_id,
+    subject_child_id,
+    scope,
+    granted,
+    policy_version,
+    metadata
+  ) values (
+    new.id,
+    null,                              -- account-level grant; child grants come later
+    'data_processing',
+    true,
+    coalesce(consent_data->>'version', '0.0'),
+    jsonb_build_object(
+      'text_hash', consent_data->>'text_hash',
+      'granted_at', consent_data->>'granted_at',
+      'source', 'signup'
+    )
+  )
+  on conflict do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_consent_signup on auth.users;
+create trigger on_auth_user_consent_signup
+  after insert on auth.users
+  for each row execute function public.copy_consent_to_records();
 
 -- Bump updated_at on row update for the tables that have it.
 create or replace function public.set_updated_at()
@@ -315,6 +425,10 @@ create trigger symbols_set_updated_at
 
 create trigger vocabulary_sets_set_updated_at
   before update on public.vocabulary_sets
+  for each row execute function public.set_updated_at();
+
+create trigger draft_onboarding_set_updated_at
+  before update on public.draft_onboarding
   for each row execute function public.set_updated_at();
 
 create trigger gamification_state_set_updated_at
