@@ -63,7 +63,7 @@ function Hero() {
             </p>
             <div className="mt-10 flex flex-col items-start gap-3 sm:flex-row">
               <Button asChild size="xl">
-                <Link href="/pricing">
+                <Link href="/signup">
                   {t('ctaPrimary')}
                   <ArrowRight aria-hidden="true" className="h-4 w-4" />
                 </Link>
@@ -72,6 +72,7 @@ function Hero() {
                 <Link href="/how-it-works">{t('ctaSecondary')}</Link>
               </Button>
             </div>
+            <p className="text-fg-subtle mt-4 max-w-xl text-sm">{t('freeCaption')}</p>
           </div>
 
           <div className="lg:col-span-6">
@@ -209,7 +210,7 @@ function ClosingCta() {
         <p className="mt-4 text-balance text-lg leading-relaxed opacity-90">{t('subtitle')}</p>
         <div className="mt-8">
           <Button asChild size="xl" variant="secondary">
-            <Link href="/pricing">{t('cta')}</Link>
+            <Link href="/signup">{t('cta')}</Link>
           </Button>
         </div>
       </div>

@@ -91,7 +91,7 @@ function Cta() {
   return (
     <Section className="text-center">
       <Button asChild size="xl">
-        <Link href="/contact">
+        <Link href="/signup">
           {t('ctaPrimary')}
           <ArrowRight aria-hidden="true" className="h-4 w-4" />
         </Link>

@@ -65,12 +65,17 @@ export function ProductJsonLd({ locale }: { locale: AppLocale }) {
         operatingSystem: 'Any',
         description: SITE.defaultDescription[locale],
         url: SITE.baseUrl,
-        // Pricing is announced at launch; we intentionally do NOT publish a
-        // misleading "free" price here.
+        // BlueCare is free and open. The Offer asserts InStock + price=0 so
+        // search-engine product cards reflect reality and never imply a
+        // paywall. If we ever introduce paid features they'll be modeled as
+        // additive AggregateOffers; the base remains free.
         offers: {
           '@type': 'Offer',
-          availability: 'https://schema.org/PreOrder',
-          url: `${SITE.baseUrl}/${locale}/pricing`,
+          availability: 'https://schema.org/InStock',
+          price: '0',
+          priceCurrency: 'USD',
+          category: 'Free',
+          url: `${SITE.baseUrl}/${locale}/signup`,
         },
       }}
     />

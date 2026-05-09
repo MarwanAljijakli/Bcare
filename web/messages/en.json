@@ -35,11 +35,10 @@
     "howItWorks": "How it works",
     "forCaregivers": "For caregivers",
     "forTherapists": "For therapists",
-    "pricing": "Early access",
     "security": "Security",
     "contact": "Contact",
-    "login": "Sign in",
-    "signup": "Get early access",
+    "getStarted": "Get started",
+    "signIn": "Sign in",
     "privacy": "Privacy",
     "terms": "Terms",
     "accessibility": "Accessibility"
@@ -49,8 +48,7 @@
       "title": "Product",
       "howItWorks": "How it works",
       "forCaregivers": "For caregivers",
-      "forTherapists": "For therapists",
-      "pricing": "Early access"
+      "forTherapists": "For therapists"
     },
     "company": {
       "title": "Company",
@@ -79,9 +77,10 @@
       "hero": {
         "eyebrow": "Built with autism specialists",
         "title": "Help your child be heard.",
-        "subtitle": "BlueCare turns symbols, voice, and gestures into the words your child wants to say — in Arabic and English, on whatever device you already own.",
-        "ctaPrimary": "Get early access",
+        "subtitle": "BlueCare turns symbols, voice, and gestures into the words your child wants to say — in Arabic and English, on whatever device you already own. Free, open, and built to be in every family's pocket.",
+        "ctaPrimary": "Get started — it's free",
         "ctaSecondary": "See how it works",
+        "freeCaption": "Free for families, therapists, and educators. No credit card.",
         "screenshotAlt": "BlueCare communication board with symbol tiles in Arabic and English"
       },
       "features": {
@@ -129,8 +128,8 @@
       },
       "closingCta": {
         "title": "Every child has something to say.",
-        "subtitle": "Join the early access list and we'll let you know the moment BlueCare opens.",
-        "cta": "Join the waitlist"
+        "subtitle": "BlueCare is free and open to families, therapists, and schools. Create an account in under a minute.",
+        "cta": "Get started"
       }
     },
     "howItWorks": {
@@ -375,70 +374,6 @@
         "body": "If you find a security issue, please email security@bluecare.app. We commit to acknowledging within 48 hours and fixing within reasonable timelines based on severity. We don't run a paid bounty yet — but we publicly thank reporters with permission."
       }
     },
-    "pricing": {
-      "hero": {
-        "eyebrow": "Early access",
-        "title": "Pricing announced at launch.",
-        "subtitle": "BlueCare is preparing for an early-access cohort. Tell us who you are and we'll let you know the moment we open the door."
-      },
-      "tiers": {
-        "title": "What launch will look like",
-        "subtitle": "Three tiers. Final pricing depends on launch scope and is announced when we open early access.",
-        "family": {
-          "name": "Family",
-          "tagline": "For one caregiver and up to three child profiles.",
-          "bullets": [
-            "Full child board (symbols + voice + gestures)",
-            "Custom symbol uploads + recorded voice",
-            "Bilingual support, three theme modes",
-            "Caregiver dashboard with progress + replays"
-          ],
-          "footnote": "Pricing announced at launch."
-        },
-        "clinic": {
-          "name": "Clinic",
-          "tagline": "For therapists with multi-client caseloads.",
-          "bullets": [
-            "Everything in Family",
-            "Multi-client caseload dashboard",
-            "Therapist-grade vocabulary curation",
-            "PDF + JSON exports for client files"
-          ],
-          "footnote": "Pricing announced at launch."
-        },
-        "school": {
-          "name": "School",
-          "tagline": "For districts and educators.",
-          "bullets": [
-            "Everything in Clinic",
-            "Bulk seat provisioning + SSO",
-            "Centralized reporting (no child input data shared)",
-            "Saudi PDPL + GDPR-aligned data processing addendum"
-          ],
-          "footnote": "Pricing announced at launch."
-        }
-      },
-      "form": {
-        "title": "Join early access",
-        "subtitle": "We'll only email you when there's something real to say. No marketing nags.",
-        "emailLabel": "Email",
-        "emailPlaceholder": "you@example.com",
-        "roleLabel": "I am a…",
-        "role": {
-          "family": "Caregiver / family",
-          "therapist": "Therapist",
-          "school": "School / district",
-          "other": "Other"
-        },
-        "submit": "Join the waitlist",
-        "submitting": "Joining…",
-        "success": "You're on the list. We'll be in touch.",
-        "alreadyExists": "This email is already on the list. Thanks!",
-        "error": "Something went wrong. Please try again.",
-        "honeypotLabel": "Leave this field empty",
-        "consentNote": "By joining, you agree to receive launch updates. We never share your email."
-      }
-    },
     "privacy": {
       "title": "Privacy",
       "lastUpdated": "Last updated: 9 May 2026",
@@ -505,7 +440,7 @@
         },
         "fees": {
           "title": "Fees",
-          "body": "BlueCare is in pre-launch. Pricing will be announced when early access opens. Joining the waitlist creates no obligation on either side."
+          "body": "BlueCare is free for everyone — families, therapists, and educators alike. We do not charge subscription fees, seat fees, or per-child fees. Operational AI costs are governed by a per-child monthly cap inside the application; the system gracefully degrades (cached responses, fewer suggestions) when a cap is reached, never paywalled. If we ever introduce paid features, they will be additive and announced at least 60 days in advance."
         },
         "termination": {
           "title": "Termination",
@@ -557,6 +492,27 @@
         "security": "Security: security@bluecare.app",
         "accessibility": "Accessibility: accessibility@bluecare.app",
         "press": "Press: press@bluecare.app"
+      }
+    },
+    "auth": {
+      "signup": {
+        "eyebrow": "Open beta",
+        "title": "Create your BlueCare account.",
+        "subtitle": "Free for everyone. No credit card. One form for families, therapists, and school staff.",
+        "comingSoon": "We're putting the finishing touches on this form right now. The full signup experience — magic link, password, role-aware onboarding — ships with the next module update.",
+        "backToHome": "Back to home",
+        "viewHowItWorks": "While you wait, see how it works",
+        "haveAccount": "Already have an account?",
+        "signInLink": "Sign in"
+      },
+      "login": {
+        "eyebrow": "Open beta",
+        "title": "Sign in to BlueCare.",
+        "subtitle": "Magic link or password — whichever feels easier.",
+        "comingSoon": "Sign-in lands with the rest of authentication in the very next update. We won't keep you waiting.",
+        "backToHome": "Back to home",
+        "needAccount": "Don't have an account yet?",
+        "signUpLink": "Get started"
       }
     }
   }

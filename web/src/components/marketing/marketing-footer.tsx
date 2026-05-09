@@ -8,7 +8,6 @@ type FooterHref =
   | '/how-it-works'
   | '/for-caregivers'
   | '/for-therapists'
-  | '/pricing'
   | '/about'
   | '/team'
   | '/contact'
@@ -27,7 +26,6 @@ const COLUMNS: Array<{
       { key: 'howItWorks', href: '/how-it-works' },
       { key: 'forCaregivers', href: '/for-caregivers' },
       { key: 'forTherapists', href: '/for-therapists' },
-      { key: 'pricing', href: '/pricing' },
     ],
   },
   {

@@ -87,7 +87,7 @@ function BoardClose() {
           </p>
           <div className="mt-8">
             <Button asChild size="lg">
-              <Link href="/pricing">
+              <Link href="/signup">
                 {tCta('ctaPrimary')}
                 <ArrowRight aria-hidden="true" className="h-4 w-4" />
               </Link>
