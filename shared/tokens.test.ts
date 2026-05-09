@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { palette, semantic, themes, themeToCssVars, a11y } from './tokens.js';
+import { palette, semantic, themes, themeToCssVars, a11y } from './tokens';
 
 // Compute relative luminance per WCAG 2.1 algorithm.
 function luminance(hex: string): number {

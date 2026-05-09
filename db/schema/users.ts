@@ -1,8 +1,8 @@
 import { relations } from 'drizzle-orm';
 import { pgTable, text, timestamp, uuid, boolean } from 'drizzle-orm/pg-core';
-import { auditLog } from './audit_log.js';
-import { children } from './children.js';
-import { profiles } from './profiles.js';
+import { auditLog } from './audit_log';
+import { children } from './children';
+import { profiles } from './profiles';
 
 /**
  * Mirror of `auth.users`. Supabase manages the auth.users table; we keep a

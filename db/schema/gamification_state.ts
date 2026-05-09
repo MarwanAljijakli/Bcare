@@ -1,6 +1,6 @@
 import { relations } from 'drizzle-orm';
 import { date, integer, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { children } from './children.js';
+import { children } from './children';
 
 /**
  * Per-child gamification state. Calm streaks, capped daily stars, palette-safe

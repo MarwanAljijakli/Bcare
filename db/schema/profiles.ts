@@ -1,7 +1,7 @@
 import { relations } from 'drizzle-orm';
 import { jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { roleEnum, localeEnum, themeEnum } from './enums.js';
-import { users } from './users.js';
+import { roleEnum, localeEnum, themeEnum } from './enums';
+import { users } from './users';
 
 /**
  * Caregiver / therapist / admin profile. Children do NOT have a row here —

@@ -1,8 +1,8 @@
 import { relations } from 'drizzle-orm';
 import { index, integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { children } from './children.js';
-import { localeEnum } from './enums.js';
-import { users } from './users.js';
+import { children } from './children';
+import { localeEnum } from './enums';
+import { users } from './users';
 
 /**
  * Caregiver-recorded voice clip used in place of (or alongside) TTS for a

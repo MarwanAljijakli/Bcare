@@ -1,8 +1,8 @@
 import { relations } from 'drizzle-orm';
 import { index, integer, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { children } from './children.js';
-import { inputEvents } from './input_events.js';
-import { outputEvents } from './output_events.js';
+import { children } from './children';
+import { inputEvents } from './input_events';
+import { outputEvents } from './output_events';
 
 /**
  * One AAC session = one continuous use of the board by a child. The session

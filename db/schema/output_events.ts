@@ -1,8 +1,8 @@
 import { relations } from 'drizzle-orm';
 import { index, jsonb, pgTable, smallint, text, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { children } from './children.js';
-import { outputModalityEnum } from './enums.js';
-import { sessions } from './sessions.js';
+import { children } from './children';
+import { outputModalityEnum } from './enums';
+import { sessions } from './sessions';
 
 /**
  * Output event = something the system produced for the child (TTS playback,

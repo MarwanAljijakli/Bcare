@@ -7,7 +7,7 @@ import {
   sensoryProfileSchema,
   themeSchema,
   vocabularyLevelSchema,
-} from './common.js';
+} from './common';
 
 describe('common schemas', () => {
   it('localeSchema accepts en and ar only', () => {

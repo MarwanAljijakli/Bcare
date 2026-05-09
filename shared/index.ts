@@ -1,3 +1,3 @@
-export * from './tokens.js';
-export * from './types/index.js';
-export * from './schemas/index.js';
+export * from './tokens';
+export * from './types/index';
+export * from './schemas/index';

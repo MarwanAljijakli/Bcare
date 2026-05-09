@@ -9,8 +9,8 @@ import {
   timestamp,
   uuid,
 } from 'drizzle-orm/pg-core';
-import { children } from './children.js';
-import { aiServiceEnum } from './enums.js';
+import { children } from './children';
+import { aiServiceEnum } from './enums';
 
 /**
  * Per-child AI cost ledger. Append-only. Every call to a paid AI service

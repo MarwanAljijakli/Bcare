@@ -1,8 +1,8 @@
 import { relations } from 'drizzle-orm';
 import { boolean, index, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { children } from './children.js';
-import { consentScopeEnum } from './enums.js';
-import { users } from './users.js';
+import { children } from './children';
+import { consentScopeEnum } from './enums';
+import { users } from './users';
 
 /**
  * Caregiver-attested consent records. One row per (subject, scope, version).

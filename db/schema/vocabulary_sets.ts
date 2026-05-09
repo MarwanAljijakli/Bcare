@@ -1,6 +1,6 @@
 import { relations } from 'drizzle-orm';
 import { index, integer, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { children } from './children.js';
+import { children } from './children';
 
 /**
  * A child's active vocabulary set — the set of symbols currently visible on

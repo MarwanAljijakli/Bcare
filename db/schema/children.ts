@@ -1,12 +1,12 @@
 import { relations } from 'drizzle-orm';
 import { date, index, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { aiUsageLedger } from './ai_usage_ledger.js';
-import { localeEnum, themeEnum, vocabularyLevelEnum } from './enums.js';
-import { gamificationState } from './gamification_state.js';
-import { progressMetrics } from './progress_metrics.js';
-import { sessions } from './sessions.js';
-import { users } from './users.js';
-import { vocabularySets } from './vocabulary_sets.js';
+import { aiUsageLedger } from './ai_usage_ledger';
+import { localeEnum, themeEnum, vocabularyLevelEnum } from './enums';
+import { gamificationState } from './gamification_state';
+import { progressMetrics } from './progress_metrics';
+import { sessions } from './sessions';
+import { users } from './users';
+import { vocabularySets } from './vocabulary_sets';
 
 /**
  * Child profile. Always owned by a caregiver `users` row. Therapists may

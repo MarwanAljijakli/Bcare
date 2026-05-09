@@ -9,7 +9,7 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
-import { children } from './children.js';
+import { children } from './children';
 
 /**
  * Daily rollup per child. Populated by a nightly job over input_events +

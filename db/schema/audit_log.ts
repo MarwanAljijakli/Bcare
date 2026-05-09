@@ -1,7 +1,7 @@
 import { relations } from 'drizzle-orm';
 import { index, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { auditActionEnum } from './enums.js';
-import { users } from './users.js';
+import { auditActionEnum } from './enums';
+import { users } from './users';
 
 /**
  * Append-only audit trail. RBAC-relevant actions (sign-in, profile changes,

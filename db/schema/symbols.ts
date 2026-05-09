@@ -1,7 +1,7 @@
 import { relations } from 'drizzle-orm';
 import { index, integer, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { symbolStatusEnum } from './enums.js';
-import { symbolLibraries } from './symbol_libraries.js';
+import { symbolStatusEnum } from './enums';
+import { symbolLibraries } from './symbol_libraries';
 
 /**
  * One symbol/pictogram. Bilingual labels are stored together — both must be

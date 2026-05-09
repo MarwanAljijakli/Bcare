@@ -250,6 +250,19 @@ create policy ai_usage_admin_read on public.ai_usage_ledger
   for select using (public.is_admin());
 
 -- =============================================================================
+-- waitlist_signups  — anonymous insert allowed; only admin reads
+-- =============================================================================
+alter table public.waitlist_signups enable row level security;
+
+-- Public anon insert. Rate-limit, email validation, and dedup happen in the
+-- /api/waitlist route handler before the insert reaches the policy.
+create policy waitlist_anon_insert on public.waitlist_signups
+  for insert with check (true);
+
+create policy waitlist_admin_read on public.waitlist_signups
+  for select using (public.is_admin());
+
+-- =============================================================================
 -- Triggers
 -- =============================================================================
 

@@ -4,4 +4,5 @@
 // Schemas are added incrementally as modules are built. This file currently
 // re-exports the foundation schemas only; per-feature schemas live in sibling files.
 
-export * from './common.js';
+export * from './common';
+export * from './waitlist';

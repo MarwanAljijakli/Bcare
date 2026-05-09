@@ -1,8 +1,8 @@
 import { relations } from 'drizzle-orm';
 import { index, jsonb, pgTable, smallint, text, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { children } from './children.js';
-import { inputModalityEnum } from './enums.js';
-import { sessions } from './sessions.js';
+import { children } from './children';
+import { inputModalityEnum } from './enums';
+import { sessions } from './sessions';
 
 /**
  * A single input event from the child. Modality determines the shape of

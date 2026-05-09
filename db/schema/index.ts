@@ -4,19 +4,20 @@
 //
 // `import { ... } from '@bluecare/db/schema'` is the only import path.
 
-export * from './enums.js';
-export * from './users.js';
-export * from './profiles.js';
-export * from './children.js';
-export * from './symbol_libraries.js';
-export * from './symbols.js';
-export * from './vocabulary_sets.js';
-export * from './sessions.js';
-export * from './input_events.js';
-export * from './output_events.js';
-export * from './progress_metrics.js';
-export * from './gamification_state.js';
-export * from './audit_log.js';
-export * from './consent_records.js';
-export * from './custom_voices.js';
-export * from './ai_usage_ledger.js';
+export * from './enums';
+export * from './users';
+export * from './profiles';
+export * from './children';
+export * from './symbol_libraries';
+export * from './symbols';
+export * from './vocabulary_sets';
+export * from './sessions';
+export * from './input_events';
+export * from './output_events';
+export * from './progress_metrics';
+export * from './gamification_state';
+export * from './audit_log';
+export * from './consent_records';
+export * from './custom_voices';
+export * from './ai_usage_ledger';
+export * from './waitlist_signups';
