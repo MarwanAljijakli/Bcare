@@ -49,6 +49,20 @@ const nextConfig = {
     ];
     return [{ source: '/:path*', headers: securityHeaders }];
   },
+
+  // Permanent (308) redirects from removed routes.
+  // /pricing is gone — BlueCare is free. Inbound links from search engines,
+  // press, and stakeholders should land on /signup.
+  async redirects() {
+    return [
+      { source: '/:locale(en|ar)/pricing', destination: '/:locale/signup', permanent: true },
+      // Bare /pricing (no locale prefix) gets caught by the next-intl middleware
+      // first and rewritten to /:locale/pricing, which then matches the rule
+      // above. We add an explicit rule too so direct hits work even if the
+      // middleware matcher changes.
+      { source: '/pricing', destination: '/en/signup', permanent: true },
+    ];
+  },
 };
 
 export default withNextIntl(nextConfig);
