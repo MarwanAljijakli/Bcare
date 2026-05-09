@@ -5,10 +5,21 @@
  * For now the type is a permissive placeholder so client code compiles. The
  * generation step is documented in `docs/deploy.md` and added to CI in
  * Module 9 hardening.
+ *
+ * `Insert` and `Update` shapes are intentionally `Record<string, unknown>` so
+ * call sites compile against the upcoming generated types without us guessing
+ * field names twice.
  */
 export type Database = {
   public: {
-    Tables: Record<string, { Row: Record<string, unknown> }>;
+    Tables: Record<
+      string,
+      {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+      }
+    >;
     Views: Record<string, { Row: Record<string, unknown> }>;
     Functions: Record<string, unknown>;
     Enums: Record<string, string>;
