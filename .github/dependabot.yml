@@ -1,0 +1,24 @@
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+    open-pull-requests-limit: 5
+    versioning-strategy: increase
+    groups:
+      next:
+        patterns: ['next', 'eslint-config-next', '@next/*']
+      radix:
+        patterns: ['@radix-ui/*']
+      storybook:
+        patterns: ['storybook', '@storybook/*']
+      drizzle:
+        patterns: ['drizzle-orm', 'drizzle-kit', 'drizzle-zod']
+      tests:
+        patterns: ['vitest', '@vitest/*', 'playwright', '@playwright/*', '@testing-library/*']
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
