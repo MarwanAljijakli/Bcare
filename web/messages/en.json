@@ -626,6 +626,16 @@
         "comingSoon": "The password-reset flow lands with the rest of authentication in the next module. For now, magic link sign-in is the fastest way back into your account.",
         "useMagicLink": "Use a magic link instead",
         "backToLogin": "Back to sign in"
+      },
+      "onboarding": {
+        "eyebrow": "Welcome",
+        "title": "You're in.",
+        "subtitle": "We're putting the finishing touches on the onboarding wizard. The full 8-step flow — child profile, sensory preferences, vocabulary level, voice selection, consent scopes, parental PIN, review — ships with the next module update.",
+        "whatsNext": "While you wait",
+        "previewBoard": "See what the child board will look like",
+        "previewDashboard": "See the caregiver dashboard preview",
+        "signOut": "Sign out for now",
+        "verifiedAs": "Signed in as {email}"
       }
     }
   }
