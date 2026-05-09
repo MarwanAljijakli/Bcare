@@ -495,24 +495,137 @@
       }
     },
     "auth": {
+      "shell": {
+        "panelEyebrow": "Open beta — free for everyone",
+        "testimonials": [
+          "BlueCare gives my son his voice back.",
+          "The bilingual board is the first AAC tool that meets our family where we are.",
+          "I can finally see what works for my client between sessions — without paperwork."
+        ],
+        "testimonialAttribution": "— early tester"
+      },
+      "devBanner": {
+        "title": "Auth is in mock mode",
+        "body": "Supabase credentials aren't configured yet, so signup and login simulate responses. Real auth ships when credentials are added."
+      },
       "signup": {
         "eyebrow": "Open beta",
         "title": "Create your BlueCare account.",
         "subtitle": "Free for everyone. No credit card. One form for families, therapists, and school staff.",
-        "comingSoon": "We're putting the finishing touches on this form right now. The full signup experience — magic link, password, role-aware onboarding — ships with the next module update.",
-        "backToHome": "Back to home",
-        "viewHowItWorks": "While you wait, see how it works",
+        "roleLabel": "I am a…",
+        "roleHelper": "Choose one. We'll tailor the next steps to fit.",
+        "roles": {
+          "family": {
+            "label": "Parent or family",
+            "description": "I want to help my child communicate."
+          },
+          "therapist": {
+            "label": "Therapist or specialist",
+            "description": "I work with children with ASD."
+          },
+          "school": {
+            "label": "School staff",
+            "description": "I'm an educator, SLP, or school admin."
+          }
+        },
+        "fullNameLabel": "Full name",
+        "fullNamePlaceholder": "Your full name",
+        "fullNameError": "Please enter your full name (2–80 characters).",
+        "emailLabel": "Email",
+        "emailPlaceholder": "you@example.com",
+        "emailErrorRequired": "We need an email to send your magic link.",
+        "emailErrorInvalid": "That doesn't look like a valid email address.",
+        "schoolNameLabel": "School name",
+        "schoolNamePlaceholder": "Where you work",
+        "schoolNameError": "Please enter the name of your school.",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "At least 12 characters",
+        "passwordErrorRequired": "Password is required when you opt out of magic link.",
+        "passwordErrorTooShort": "Password must be at least 12 characters.",
+        "passwordErrorWeak": "Use a mix of letters and numbers — and a symbol if you like.",
+        "showPassword": "Show password",
+        "hidePassword": "Hide password",
+        "strength": {
+          "weak": "Weak",
+          "okay": "Okay",
+          "strong": "Strong",
+          "excellent": "Excellent"
+        },
+        "consentLabelStart": "I agree to the ",
+        "consentLabelTerms": "Terms",
+        "consentLabelMiddle": " and ",
+        "consentLabelPrivacy": "Privacy Policy",
+        "consentLabelEnd": ".",
+        "consentError": "We need your agreement to continue.",
+        "primaryMagicLink": "Send me a magic link",
+        "primaryMagicLinkHelper": "We'll email you a secure link. No password needed.",
+        "primaryPassword": "Create account",
+        "togglePassword": "Use a password instead",
+        "toggleMagicLink": "Use a magic link instead",
+        "submitting": "Working on it…",
         "haveAccount": "Already have an account?",
-        "signInLink": "Sign in"
+        "signInLink": "Sign in",
+        "ageNotice": "By creating an account you confirm you are 18+ and the legal guardian of any child profile you add.",
+        "errors": {
+          "userExists": "That email is already registered.",
+          "userExistsAction": "Sign in instead?",
+          "rateLimited": "Too many attempts. Please wait a minute and try again.",
+          "serverUnreachable": "We couldn't reach the server. Please try again in a moment.",
+          "unconfigured": "We're getting set up. Authentication will be available very shortly — please check back."
+        },
+        "success": {
+          "title": "Check your email.",
+          "bodyMagic": "We sent a magic link to {email}. Click it to verify your account and start onboarding.",
+          "bodyPassword": "We sent a verification link to {email}. Click it to confirm your account, then sign in.",
+          "resendLabel": "Resend email",
+          "resendCountdown": "Resend in {seconds}s",
+          "wrongEmail": "Wrong email?",
+          "useDifferent": "Use a different email"
+        }
       },
       "login": {
         "eyebrow": "Open beta",
-        "title": "Sign in to BlueCare.",
-        "subtitle": "Magic link or password — whichever feels easier.",
-        "comingSoon": "Sign-in lands with the rest of authentication in the very next update. We won't keep you waiting.",
-        "backToHome": "Back to home",
-        "needAccount": "Don't have an account yet?",
-        "signUpLink": "Get started"
+        "title": "Welcome back.",
+        "subtitle": "Sign in with a magic link or your password.",
+        "emailLabel": "Email",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "Your password",
+        "showPassword": "Show password",
+        "hidePassword": "Hide password",
+        "primaryMagicLink": "Send me a magic link",
+        "primaryMagicLinkHelper": "We'll email you a secure link. No password needed.",
+        "primaryPassword": "Sign in",
+        "togglePassword": "Sign in with password",
+        "toggleMagicLink": "Use a magic link instead",
+        "forgotPassword": "Forgot your password?",
+        "submitting": "Working on it…",
+        "needAccount": "New to BlueCare?",
+        "signUpLink": "Get started",
+        "errors": {
+          "userNotFound": "We couldn't find an account with that email.",
+          "userNotFoundAction": "Create one?",
+          "invalidCredentials": "That password doesn't match our records. Magic link works too — try that.",
+          "rateLimited": "Too many attempts. Please wait a minute and try again.",
+          "serverUnreachable": "We couldn't reach the server. Please try again in a moment.",
+          "unconfigured": "Authentication is being configured. Please check back in a moment."
+        },
+        "success": {
+          "title": "Check your email.",
+          "body": "We sent a magic link to {email}. Click it and you'll be signed in.",
+          "resendLabel": "Resend email",
+          "resendCountdown": "Resend in {seconds}s",
+          "wrongEmail": "Wrong email?",
+          "useDifferent": "Use a different email"
+        }
+      },
+      "resetPassword": {
+        "eyebrow": "Open beta",
+        "title": "Reset your password.",
+        "subtitle": "We'll email you a link to set a new one.",
+        "comingSoon": "The password-reset flow lands with the rest of authentication in the next module. For now, magic link sign-in is the fastest way back into your account.",
+        "useMagicLink": "Use a magic link instead",
+        "backToLogin": "Back to sign in"
       }
     }
   }
