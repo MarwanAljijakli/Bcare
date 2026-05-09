@@ -13,7 +13,8 @@ const ROUTES = [
   '/about',
   '/team',
   '/security',
-  '/pricing',
+  '/signup',
+  '/login',
   '/privacy',
   '/terms',
   '/accessibility',
@@ -79,10 +80,89 @@ test('OG image route returns a PNG for a given locale', async ({ page }) => {
   expect(og.headers()['content-type']).toContain('image/png');
 });
 
-test('waitlist API rejects malformed payloads', async ({ page }) => {
+test('waitlist API (deprecated) still rejects malformed payloads', async ({ page }) => {
+  // Deprecated in Module 1.5 but retained for in-flight requests; still
+  // validates input properly.
   const res = await page.request.post('/api/waitlist', {
     data: { email: 'not-an-email', role: 'family' },
     headers: { 'Content-Type': 'application/json' },
   });
   expect(res.status()).toBe(400);
+});
+
+test.describe('Module 1.5 pivot — free + open framing', () => {
+  test('header exposes BOTH "Sign in" and "Get started" CTAs in EN', async ({ page }) => {
+    await page.goto('/en');
+    const header = page.getByRole('banner');
+    await expect(header.getByRole('link', { name: /sign in/i })).toHaveAttribute(
+      'href',
+      '/en/login',
+    );
+    await expect(header.getByRole('link', { name: /get started/i })).toHaveAttribute(
+      'href',
+      '/en/signup',
+    );
+  });
+
+  test('header exposes both CTAs in AR with correct hrefs', async ({ page }) => {
+    await page.goto('/ar');
+    const header = page.getByRole('banner');
+    await expect(header.getByRole('link', { name: /تسجيل الدخول/ })).toHaveAttribute(
+      'href',
+      '/ar/login',
+    );
+    await expect(header.getByRole('link', { name: /ابدأ الآن/ })).toHaveAttribute(
+      'href',
+      '/ar/signup',
+    );
+  });
+
+  test('hero primary CTA links to /signup, free caption is present', async ({ page }) => {
+    await page.goto('/en');
+    const hero = page.getByRole('main');
+    await expect(
+      hero.getByRole('link', { name: /get started — it's free/i }).first(),
+    ).toHaveAttribute('href', '/en/signup');
+    await expect(hero.getByText(/no credit card/i)).toBeVisible();
+  });
+
+  test('/pricing redirects to /signup with 308 (permanent)', async ({ page }) => {
+    for (const locale of ['en', 'ar'] as const) {
+      const res = await page.request.get(`/${locale}/pricing`, { maxRedirects: 0 });
+      expect(res.status(), `expected 308 for /${locale}/pricing`).toBe(308);
+      expect(res.headers()['location']).toMatch(new RegExp(`/${locale}/signup$`));
+    }
+  });
+
+  test('sitemap excludes /pricing and includes /signup + /login', async ({ page }) => {
+    const sitemap = await page.request.get('/sitemap.xml');
+    const body = await sitemap.text();
+    expect(body).not.toContain('/pricing');
+    expect(body).toContain('/en/signup');
+    expect(body).toContain('/ar/signup');
+    expect(body).toContain('/en/login');
+    expect(body).toContain('/ar/login');
+  });
+
+  test('Product JSON-LD on landing asserts InStock + price 0', async ({ page }) => {
+    await page.goto('/en');
+    const jsonLd = await page
+      .locator('script[type="application/ld+json"]')
+      .filter({ hasText: 'SoftwareApplication' })
+      .first()
+      .textContent();
+    expect(jsonLd, 'Product JSON-LD should be present').toBeTruthy();
+    const data = JSON.parse(jsonLd ?? '{}');
+    expect(data.offers.availability).toBe('https://schema.org/InStock');
+    expect(data.offers.price).toBe('0');
+    expect(data.offers.priceCurrency).toBe('USD');
+    expect(JSON.stringify(data)).not.toMatch(/PreOrder/);
+  });
+
+  test('footer Product column does NOT include a Pricing link', async ({ page }) => {
+    await page.goto('/en');
+    const footer = page.getByRole('contentinfo');
+    await expect(footer).toBeVisible();
+    await expect(footer.getByRole('link', { name: /^pricing$/i })).toHaveCount(0);
+  });
 });

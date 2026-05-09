@@ -1,6 +1,6 @@
 # BlueCare
 
-> Smart, Personalized Communication for Children with Autism
+> Smart, Personalized Communication for Children with Autism — **free for everyone.**
 
 BlueCare is an AI-powered, bilingual (Arabic + English) Augmentative and Alternative
 Communication (AAC) web platform purpose-built for children with Autism Spectrum Disorder.
@@ -8,8 +8,15 @@ It combines symbol-based communication, speech recognition, and webcam gesture i
 into a single calm, predictable experience, while giving caregivers and therapists rich
 progress analytics and personalization controls.
 
-> Status: **early development**. See [`/docs`](./docs/) for architecture, data model,
-> deploy, runbook, accessibility report, and the canonical critical-flows checklist.
+**Free, open, and built to be in every family's pocket.** No subscriptions, no tiers,
+no waitlist, no paywalls — for families, therapists, and educators alike. The mission
+is reach and impact, not revenue. Operational AI cost is governed by a per-child
+monthly cap inside the application; the system gracefully degrades when a cap is
+reached, never paywalled.
+
+> Status: **open beta — free for everyone**, building in public. See [`/docs`](./docs/)
+> for architecture, data model, deploy, runbook, accessibility report, and the
+> canonical critical-flows checklist.
 
 ---
 
