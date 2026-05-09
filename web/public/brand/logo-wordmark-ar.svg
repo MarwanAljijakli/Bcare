@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Arabic wordmark. IBM Plex Sans Arabic Bold via system fallback. The Arabic
+  reading direction is right-to-left so we right-align the text.
+-->
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 280 64"
+  role="img"
+  aria-label="بلوكير"
+  width="280"
+  height="64"
+>
+  <title>بلوكير</title>
+  <text
+    x="280"
+    y="46"
+    text-anchor="end"
+    direction="rtl"
+    font-family="'IBM Plex Sans Arabic', 'Segoe UI', system-ui, sans-serif"
+    font-weight="700"
+    font-size="48"
+    fill="#2B6CB0"
+  >بلوكير</text>
+</svg>

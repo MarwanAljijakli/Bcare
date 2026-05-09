@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  English wordmark. Inter SemiBold via system fallback — for build-time
+  reproducibility we DO NOT embed a webfont; downstream consumers should
+  prefer the React component which uses next/font and inherits the live
+  font load. This static SVG is for places that need a self-contained file
+  (Open Graph image fallback, README assets, Storybook).
+-->
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 280 64"
+  role="img"
+  aria-label="BlueCare"
+  width="280"
+  height="64"
+>
+  <title>BlueCare</title>
+  <text
+    x="0"
+    y="46"
+    font-family="Inter, 'Segoe UI', system-ui, sans-serif"
+    font-weight="600"
+    font-size="48"
+    letter-spacing="-0.01em"
+    fill="#2B6CB0"
+  >BlueCare</text>
+</svg>
