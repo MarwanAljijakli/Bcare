@@ -31,22 +31,532 @@
   "nav": {
     "home": "Home",
     "about": "About",
+    "team": "Team",
     "howItWorks": "How it works",
     "forCaregivers": "For caregivers",
     "forTherapists": "For therapists",
-    "pricing": "Pricing",
+    "pricing": "Early access",
+    "security": "Security",
     "contact": "Contact",
     "login": "Sign in",
-    "signup": "Get started"
+    "signup": "Get early access",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "accessibility": "Accessibility"
+  },
+  "footer": {
+    "product": {
+      "title": "Product",
+      "howItWorks": "How it works",
+      "forCaregivers": "For caregivers",
+      "forTherapists": "For therapists",
+      "pricing": "Early access"
+    },
+    "company": {
+      "title": "Company",
+      "about": "About",
+      "team": "Team",
+      "contact": "Contact",
+      "security": "Security"
+    },
+    "legal": {
+      "title": "Legal",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "accessibility": "Accessibility"
+    },
+    "allRightsReserved": "All rights reserved.",
+    "originNote": "Born from a senior research project at Jeddah International College."
+  },
+  "trustStrip": {
+    "lead": "Born from a senior research project at",
+    "institution": "Jeddah International College",
+    "supervisor": "Supervised by Dr. Hasanin Barhamtoshy",
+    "viewTeam": "Meet the team"
   },
   "marketing": {
     "landing": {
       "hero": {
         "eyebrow": "Built with autism specialists",
+        "title": "Help your child be heard.",
+        "subtitle": "BlueCare turns symbols, voice, and gestures into the words your child wants to say — in Arabic and English, on whatever device you already own.",
+        "ctaPrimary": "Get early access",
+        "ctaSecondary": "See how it works",
+        "screenshotAlt": "BlueCare communication board with symbol tiles in Arabic and English"
+      },
+      "features": {
+        "title": "Communication that meets your child where they are.",
+        "subtitle": "Three input modes, one calm experience. Choose what works in the moment — your child can mix them freely.",
+        "items": {
+          "symbols": {
+            "title": "Symbols",
+            "body": "A bilingual pictogram board your child can tap. Vocabulary grows with them — the right tiles surface when they're most likely to be needed."
+          },
+          "voice": {
+            "title": "Voice",
+            "body": "Hold-to-speak in Arabic or English. We turn approximations into clear sentences your child can play back, never recording more than the moment."
+          },
+          "gestures": {
+            "title": "Gestures",
+            "body": "An optional camera mode recognizes pinch-to-select and swipe-to-navigate — entirely on the device. Video never leaves your home."
+          }
+        }
+      },
+      "personalization": {
+        "title": "Learns your child's words. Quietly.",
+        "subtitle": "BlueCare watches usage patterns — never content — to suggest the next vocabulary tile, the right time of day for new words, and a difficulty curve your child can actually climb.",
+        "bullet1": "Caregiver review on every suggestion before it changes the board.",
+        "bullet2": "Per-child monthly AI cost cap, enforced in code.",
+        "bullet3": "No third-party tracking on your child's input — ever."
+      },
+      "audiences": {
+        "title": "Who BlueCare is for",
+        "family": {
+          "title": "Families",
+          "body": "A calm, predictable companion at home. Add custom symbols, record your own voice, and watch progress without pressure.",
+          "cta": "For caregivers →"
+        },
+        "therapists": {
+          "title": "Therapists",
+          "body": "Multi-client caseloads with shared dashboards, vocabulary curation, and exportable progress reports — built around how your sessions actually flow.",
+          "cta": "For therapists →"
+        },
+        "schools": {
+          "title": "Schools",
+          "body": "Classroom-ready, bilingual, and accessible to non-verbal learners. District-friendly deployment without analytics on student input.",
+          "cta": "Talk to us →"
+        }
+      },
+      "closingCta": {
         "title": "Every child has something to say.",
-        "subtitle": "BlueCare helps non-verbal and minimally verbal children with autism communicate using symbols, voice, and gestures — in Arabic and English.",
-        "ctaPrimary": "Get started",
-        "ctaSecondary": "See how it works"
+        "subtitle": "Join the early access list and we'll let you know the moment BlueCare opens.",
+        "cta": "Join the waitlist"
+      }
+    },
+    "howItWorks": {
+      "title": "How BlueCare works",
+      "subtitle": "Four steps from setup to your child's first sentence.",
+      "steps": {
+        "setup": {
+          "title": "1. Set up your child's profile",
+          "body": "Tell us their name, language, sensory preferences, and starting vocabulary level. Every choice has a calm default if you're not sure."
+        },
+        "communicate": {
+          "title": "2. Open the board",
+          "body": "Your child taps symbols, holds to speak, or uses optional camera gestures. BlueCare reads the sentence aloud in the voice you chose."
+        },
+        "learn": {
+          "title": "3. The board learns",
+          "body": "Vocabulary suggestions are reviewed by you before they appear. The grid reorders so the words your child actually uses stay close at hand."
+        },
+        "share": {
+          "title": "4. Share with the team",
+          "body": "Therapists you invite see progress and session replays. You stay in control — invite codes are yours to revoke at any time."
+        }
+      },
+      "faq": {
+        "title": "Common questions",
+        "items": [
+          {
+            "q": "Does my child need to be verbal?",
+            "a": "No. BlueCare is built for non-verbal and minimally verbal children. Symbols and gestures work without any speech at all."
+          },
+          {
+            "q": "Which languages are supported?",
+            "a": "Arabic and English at launch, with full right-to-left layout, Arabic phonetic helpers, and culturally appropriate symbols."
+          },
+          {
+            "q": "Do I need a special device?",
+            "a": "Any modern tablet, phone, or laptop works. The child board is tablet-first; the caregiver dashboard works on phones too."
+          },
+          {
+            "q": "Is video sent to a server when I use gestures?",
+            "a": "No. Hand tracking runs entirely on the device. Camera frames never leave the browser unless you opt in."
+          },
+          {
+            "q": "Who can see my child's data?",
+            "a": "Only you, by default. Therapists can be invited and revoked at any time. We never sell data and we never use a child's input to train a model."
+          },
+          {
+            "q": "What happens if I cancel?",
+            "a": "You can export everything (sessions, vocabulary, progress) and delete your account from the dashboard. We honor deletion requests within 30 days."
+          }
+        ]
+      }
+    },
+    "forCaregivers": {
+      "hero": {
+        "title": "A calm tool for the family.",
+        "subtitle": "BlueCare is designed for the long evenings and the small breakthroughs. No surprises, no pressure, no flashy celebrations."
+      },
+      "benefits": {
+        "title": "What caregivers get",
+        "items": [
+          {
+            "title": "Custom vocabulary",
+            "body": "Add your child's favorite snacks, a sibling's name, the route to grandma's house. Bilingual labels, your own recorded voice, optional phonetic help."
+          },
+          {
+            "title": "Quiet mode",
+            "body": "One toggle removes every animation and sound. For meltdown days, dental visits, or quiet rooms."
+          },
+          {
+            "title": "Progress without pressure",
+            "body": "Streaks cap at five stars a day on purpose. We celebrate calmly. We never use leaderboards."
+          },
+          {
+            "title": "Session replays",
+            "body": "Watch what your child said today, in the order they said it. Add a note, share with a therapist, or save it for the file."
+          },
+          {
+            "title": "Parental PIN",
+            "body": "Settings, voice clips, and the dashboard sit behind a PIN your child won't accidentally tap into."
+          },
+          {
+            "title": "Your data is yours",
+            "body": "Export everything as PDF or JSON. Delete your account in two clicks. We honor deletion requests within 30 days, end-to-end."
+          }
+        ]
+      }
+    },
+    "forTherapists": {
+      "hero": {
+        "title": "Built around how you actually run sessions.",
+        "subtitle": "Multi-client caseloads, exportable reports, and a vocabulary-curation tool that respects clinical judgment over algorithmic guesses."
+      },
+      "benefits": {
+        "title": "What therapists get",
+        "items": [
+          {
+            "title": "Caseload at a glance",
+            "body": "All your invited clients on one screen. Today's session, streak, top symbols, and what changed since you last logged in."
+          },
+          {
+            "title": "Vocabulary curation",
+            "body": "Approve or reject every AI suggestion. Add your own symbols. Pin clinical-priority tiles. The board is the team's decision, not the model's."
+          },
+          {
+            "title": "Session replay with notes",
+            "body": "Step through inputs and outputs in sequence. Add notes attached to specific moments. Export the report as PDF for the file."
+          },
+          {
+            "title": "Bilingual by design",
+            "body": "Switch a client's board between Arabic and English with one toggle. Phonetic helpers, culturally appropriate symbols, full RTL layout."
+          },
+          {
+            "title": "Quiet by default",
+            "body": "No popups, no animations, no leaderboards. The tool stays out of the way during a session."
+          },
+          {
+            "title": "Privacy posture you can defend",
+            "body": "No third-party analytics on a child's input. Encrypted at rest and in transit. Audit log on every clinically relevant action."
+          }
+        ]
+      }
+    },
+    "about": {
+      "hero": {
+        "eyebrow": "About BlueCare",
+        "title": "From a research project to a real tool.",
+        "subtitle": "BlueCare started as a senior project in the Computer Science department at Jeddah International College. Four students saw a gap — culturally Arabic, AI-personalized AAC tools simply did not exist — and decided to fill it."
+      },
+      "story": {
+        "title": "The origin story",
+        "p1": "Existing AAC tools are rigid. They're monolingual. They were never designed for Arabic-speaking families, and they don't learn from how a specific child actually communicates. PECS books are static. Static SGDs feel clinical. The market gap was visible from the first interview the team did with families and speech therapists in Jeddah.",
+        "p2": "The senior project posed a simple question: can a modern, multimodal, bilingual AAC platform actually adapt to a child over time without becoming creepy or expensive? The answer in the report was yes. The engineering build is now turning that answer into shipping software.",
+        "p3": "Today BlueCare is being prepared for a real market launch. The same four authors are still on it. The supervisor — Dr. Hasanin Barhamtoshy — still steers the academic shape of it. The bar is now consumer healthtech, not student project."
+      },
+      "principles": {
+        "title": "The principles we won't bend",
+        "items": [
+          {
+            "title": "Calm beats clever",
+            "body": "Predictable, low-sensory-load interfaces. No leaderboards, no time pressure, no flashy celebrations."
+          },
+          {
+            "title": "Arabic is a first-class citizen",
+            "body": "Right-to-left from the first pixel. Phonetic helpers. Culturally appropriate symbols, not English imports with translated labels."
+          },
+          {
+            "title": "Children's data is sacred",
+            "body": "No third-party analytics on child input. No model trained on a child's voice without explicit consent. Audit log on every privileged action."
+          },
+          {
+            "title": "Caregivers stay in control",
+            "body": "AI suggestions are caregiver-reviewable by default. Every personalization decision the system makes is visible and reversible."
+          }
+        ]
+      }
+    },
+    "team": {
+      "hero": {
+        "eyebrow": "The team",
+        "title": "Four authors, one supervisor, and a long list of advisors.",
+        "subtitle": "BlueCare's authors are the four senior-project students who scoped, designed, and proposed the system. They are now leading it through to launch."
+      },
+      "supervisor": {
+        "title": "Academic supervisor"
+      },
+      "founders": {
+        "title": "Founders & senior project authors"
+      },
+      "joinUs": {
+        "title": "Join us",
+        "body": "We're hiring no one yet — the team is small on purpose. If you're a speech therapist, a parent of a child with autism, or an Arabic-speaking AAC researcher, we'd love your feedback during early access.",
+        "cta": "Get in touch"
+      }
+    },
+    "security": {
+      "hero": {
+        "eyebrow": "Security & privacy",
+        "title": "We protect children's data the way we'd protect our own.",
+        "subtitle": "BlueCare is engineered to a HIPAA-aware standard with privacy posture aligned to Saudi PDPL and GDPR-style rights. Below is what that actually means in practice."
+      },
+      "controls": {
+        "title": "Technical controls",
+        "items": [
+          {
+            "title": "Encrypted at rest",
+            "body": "All persisted data — children's profiles, session events, vocabulary, audio clips, audit logs — is encrypted at rest in our managed Postgres."
+          },
+          {
+            "title": "Encrypted in transit",
+            "body": "TLS 1.3 everywhere. HSTS preloaded. Strict referrer policy and a content-security-aware permissions policy on every response."
+          },
+          {
+            "title": "Row-level security on every table",
+            "body": "A caregiver can only see their own children. A therapist can only see clients they've been explicitly invited to. Admins can never read child input content. The database itself enforces it, not just the application."
+          },
+          {
+            "title": "Least-privilege roles",
+            "body": "Service-role access is gated to specific server-only paths. Application code uses the user's JWT so RLS triggers on every query."
+          },
+          {
+            "title": "Audit log on every privileged action",
+            "body": "Sign-in, profile updates, child creation, symbol moderation, data exports, and consent changes all write a row to an append-only audit log. Admins read; nobody updates or deletes."
+          },
+          {
+            "title": "Per-child AI cost cap",
+            "body": "Every paid AI call (speech transcription, suggestions, voice synthesis) passes through a single guard that enforces a monthly per-child budget — preventing runaway cost or runaway use."
+          },
+          {
+            "title": "No third-party tracking on child surfaces",
+            "body": "The child board never includes third-party analytics. Caregiver dashboards include only product analytics that exclude any child input content."
+          },
+          {
+            "title": "On-device gesture recognition",
+            "body": "Hand tracking runs in the browser via MediaPipe. Camera frames never leave the device unless a caregiver opts in for a specific session."
+          }
+        ]
+      },
+      "rights": {
+        "title": "Your rights",
+        "items": [
+          {
+            "title": "Export",
+            "body": "One click downloads everything we have on your account — profiles, sessions, vocabulary, audit log entries — as a portable archive."
+          },
+          {
+            "title": "Delete",
+            "body": "One click deletes your account. We tombstone immediately and purge within 30 days end-to-end, including backups within their retention window."
+          },
+          {
+            "title": "Revoke consent",
+            "body": "Each consent scope (data processing, voice recording, webcam, AI personalization) can be revoked independently at any time."
+          },
+          {
+            "title": "Inspect",
+            "body": "The audit log is visible to admins. We will share the entries that pertain to your account on request."
+          }
+        ]
+      },
+      "disclosure": {
+        "title": "Vulnerability disclosure",
+        "body": "If you find a security issue, please email security@bluecare.app. We commit to acknowledging within 48 hours and fixing within reasonable timelines based on severity. We don't run a paid bounty yet — but we publicly thank reporters with permission."
+      }
+    },
+    "pricing": {
+      "hero": {
+        "eyebrow": "Early access",
+        "title": "Pricing announced at launch.",
+        "subtitle": "BlueCare is preparing for an early-access cohort. Tell us who you are and we'll let you know the moment we open the door."
+      },
+      "tiers": {
+        "title": "What launch will look like",
+        "subtitle": "Three tiers. Final pricing depends on launch scope and is announced when we open early access.",
+        "family": {
+          "name": "Family",
+          "tagline": "For one caregiver and up to three child profiles.",
+          "bullets": [
+            "Full child board (symbols + voice + gestures)",
+            "Custom symbol uploads + recorded voice",
+            "Bilingual support, three theme modes",
+            "Caregiver dashboard with progress + replays"
+          ],
+          "footnote": "Pricing announced at launch."
+        },
+        "clinic": {
+          "name": "Clinic",
+          "tagline": "For therapists with multi-client caseloads.",
+          "bullets": [
+            "Everything in Family",
+            "Multi-client caseload dashboard",
+            "Therapist-grade vocabulary curation",
+            "PDF + JSON exports for client files"
+          ],
+          "footnote": "Pricing announced at launch."
+        },
+        "school": {
+          "name": "School",
+          "tagline": "For districts and educators.",
+          "bullets": [
+            "Everything in Clinic",
+            "Bulk seat provisioning + SSO",
+            "Centralized reporting (no child input data shared)",
+            "Saudi PDPL + GDPR-aligned data processing addendum"
+          ],
+          "footnote": "Pricing announced at launch."
+        }
+      },
+      "form": {
+        "title": "Join early access",
+        "subtitle": "We'll only email you when there's something real to say. No marketing nags.",
+        "emailLabel": "Email",
+        "emailPlaceholder": "you@example.com",
+        "roleLabel": "I am a…",
+        "role": {
+          "family": "Caregiver / family",
+          "therapist": "Therapist",
+          "school": "School / district",
+          "other": "Other"
+        },
+        "submit": "Join the waitlist",
+        "submitting": "Joining…",
+        "success": "You're on the list. We'll be in touch.",
+        "alreadyExists": "This email is already on the list. Thanks!",
+        "error": "Something went wrong. Please try again.",
+        "honeypotLabel": "Leave this field empty",
+        "consentNote": "By joining, you agree to receive launch updates. We never share your email."
+      }
+    },
+    "privacy": {
+      "title": "Privacy",
+      "lastUpdated": "Last updated: 9 May 2026",
+      "intro": "BlueCare is engineered to handle children's data with care. This page describes what we collect, why, where it lives, and what choices you have. It reflects how the product actually works — not generic templates.",
+      "sections": {
+        "whoWeAre": {
+          "title": "Who we are",
+          "body": "BlueCare is operated by the BlueCare team, originating from a senior project at Jeddah International College, Computer Science department. For data-protection inquiries, email privacy@bluecare.app."
+        },
+        "whatWeCollect": {
+          "title": "What we collect",
+          "body": "Account-level data: caregiver email, name, locale, theme preference. Child-profile data (only data the caregiver enters): preferred name, age, language, sensory profile, vocabulary level, voice selection. Usage events: which symbols a child selected, when, and via which input modality (symbol/voice/gesture). We do NOT store raw transcripts of a child's speech. We do NOT keep video frames from gesture mode beyond the moment they are processed."
+        },
+        "whyWeCollect": {
+          "title": "Why we collect it",
+          "body": "(1) To run the product — without a profile we cannot show a board. (2) To personalize vocabulary suggestions, which a caregiver reviews before they take effect. (3) To build progress views for caregivers and therapists. We do NOT collect for advertising. We do NOT sell data. We do NOT train models on child input."
+        },
+        "lawfulBasis": {
+          "title": "Lawful basis",
+          "body": "For caregivers in Saudi Arabia, we process under PDPL Article 5 with explicit caregiver consent. For users in the EEA / UK, we process under GDPR Articles 6(1)(a) (consent) and 6(1)(b) (contract). Each consent scope (data processing, voice recording, webcam processing, AI personalization, analytics dashboard) can be granted or revoked independently."
+        },
+        "thirdParties": {
+          "title": "Third parties",
+          "body": "We use Supabase (managed Postgres + Auth + Storage) for application data, hosted in a region we'll publish before launch. AI services (Whisper for speech recognition, GPT-4o-mini for vocabulary suggestions, ElevenLabs for English voices, Azure Neural TTS for Arabic voices) receive only the minimum data required for the call and never receive child identity. We do NOT use third-party analytics on the child board."
+        },
+        "retention": {
+          "title": "How long we keep data",
+          "body": "Active accounts: as long as you keep them. Audit log entries: 24 months. Anonymized aggregate metrics: indefinitely (no individual identifiable). On account deletion: tombstoned immediately, purged within 30 days end-to-end, including from backups within their retention window."
+        },
+        "yourRights": {
+          "title": "Your rights",
+          "body": "Access, rectification, erasure, restriction, portability, and objection — all available from the dashboard or by emailing privacy@bluecare.app. We respond within 30 days. You can also lodge a complaint with the Saudi Data & AI Authority or your local supervisory authority."
+        },
+        "children": {
+          "title": "About children's data",
+          "body": "Children do not authenticate directly. A child's profile is owned by a caregiver. Caregivers attest to consent on behalf of the child for each scope. We minimize the data we collect about children, never expose it to third-party analytics, and treat it as the most sensitive class of data in the system."
+        },
+        "changes": {
+          "title": "Changes to this policy",
+          "body": "When we make material changes, we email account holders, raise an in-app banner, and bump the policy version stored against your consent record. Material changes never apply retroactively."
+        }
+      }
+    },
+    "terms": {
+      "title": "Terms of service",
+      "lastUpdated": "Last updated: 9 May 2026",
+      "intro": "These terms describe the agreement between you and BlueCare when you use the service. They are written to be readable, not aggressive.",
+      "sections": {
+        "service": {
+          "title": "The service",
+          "body": "BlueCare is an AAC web platform for children with autism. It provides a child-facing communication board, a caregiver/therapist dashboard, and an admin surface. The exact feature set evolves; significant removals are announced at least 60 days in advance."
+        },
+        "accounts": {
+          "title": "Accounts",
+          "body": "Caregivers and therapists create accounts. Children do not. You are responsible for keeping your credentials secure and for any actions taken under your account."
+        },
+        "acceptableUse": {
+          "title": "Acceptable use",
+          "body": "Don't reverse-engineer, scrape, or interfere with the service. Don't use it to send unlawful content. Don't impersonate another person. Custom symbol uploads are subject to admin moderation; we may reject content that conflicts with our content policy."
+        },
+        "ip": {
+          "title": "Intellectual property",
+          "body": "BlueCare, the brand mark, and the codebase are owned by the BlueCare team. ARASAAC pictograms are licensed under CC BY-NC-SA, attributed in the in-app credits. Custom symbols you upload remain yours; you grant us a limited license to display them to your account."
+        },
+        "fees": {
+          "title": "Fees",
+          "body": "BlueCare is in pre-launch. Pricing will be announced when early access opens. Joining the waitlist creates no obligation on either side."
+        },
+        "termination": {
+          "title": "Termination",
+          "body": "You can delete your account at any time from the dashboard. We may suspend accounts that violate acceptable use, with notice where the situation allows."
+        },
+        "disclaimer": {
+          "title": "Disclaimer",
+          "body": "BlueCare is a communication tool, not a medical device. It does not diagnose, treat, or cure any condition. We make no warranty that the service is fit for a particular clinical purpose. For clinical decisions, consult your therapist."
+        },
+        "law": {
+          "title": "Governing law",
+          "body": "These terms are governed by the laws of the Kingdom of Saudi Arabia. Disputes go to the competent courts of Jeddah."
+        },
+        "contact": {
+          "title": "Contact",
+          "body": "Questions about these terms: legal@bluecare.app."
+        }
+      }
+    },
+    "accessibility": {
+      "title": "Accessibility statement",
+      "lastUpdated": "Last updated: 9 May 2026",
+      "intro": "BlueCare is built for non-verbal and minimally verbal children with autism. Accessibility is not a checklist for us — it's the product. This page describes the actual conformance state of the marketing site as of the date above, with named known issues.",
+      "conformance": {
+        "title": "Conformance state",
+        "summary": "The marketing site targets WCAG 2.2 AA. The child communication board (built in later modules) targets WCAG 2.2 AAA on color contrast, focus, and motion. Both are tested with axe-core in CI, with Lighthouse, and through manual screen-reader passes (NVDA on Windows, VoiceOver on macOS).",
+        "tested": [
+          "All public marketing routes pass axe-core with zero serious or critical violations.",
+          "Light, dark, and high-contrast theme modes meet WCAG AA contrast on every text-on-background pair (high-contrast meets AAA).",
+          "Full keyboard reachability — every interactive element is reachable, visible-on-focus, and operable.",
+          "Right-to-left layout parity — every component, icon, and animation respects writing direction.",
+          "prefers-reduced-motion is honored across the site."
+        ]
+      },
+      "knownIssues": {
+        "title": "Known issues",
+        "body": "None as of this revision. We add named issues here as we discover them and remove them as we ship fixes — silence on this page would be worse than honesty."
+      },
+      "feedback": {
+        "title": "Feedback",
+        "body": "If you encounter a barrier, please tell us. We treat accessibility regressions as bugs of the highest severity. Email accessibility@bluecare.app or use the contact form."
+      }
+    },
+    "contact": {
+      "title": "Contact us",
+      "subtitle": "We answer email. We don't run a chat widget. If you have a security issue, please use the dedicated address.",
+      "emails": {
+        "general": "General: hello@bluecare.app",
+        "security": "Security: security@bluecare.app",
+        "accessibility": "Accessibility: accessibility@bluecare.app",
+        "press": "Press: press@bluecare.app"
       }
     }
   }
