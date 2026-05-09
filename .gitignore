@@ -76,3 +76,5 @@ public/robots.txt.generated
 .DS_Store
 *.pem
 .husky/_
+
+.vercel
