@@ -2,12 +2,16 @@ import { index, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizz
 import { localeEnum } from './enums';
 
 /**
- * Marketing-site waitlist. Captured pre-launch from the /pricing Early Access
- * page. Admin-only read; insert is allowed unauthenticated (bot mitigation
- * lives in the route handler — rate limit + zod + email-format strictness).
+ * @deprecated Module 1.5 (2026-05-09) made BlueCare free + open from day one;
+ * the /pricing surface and the waitlist UI are gone. This table and the
+ * /api/waitlist route handler are retained read-only so any in-flight
+ * signups already deployed don't hit a missing endpoint. **No new traffic
+ * reaches this surface.** Schedule for full removal in Module 9 hardening
+ * (see docs/backlog.md).
  *
- * No PII beyond email + role + locale + a free-form `referrer` source. This
- * intentionally never joins to a child profile or any other table.
+ * Legacy purpose: marketing-site waitlist captured pre-launch. Admin-only
+ * read; insert allowed unauthenticated (bot mitigation in the route handler
+ * — rate limit + zod + email-format strictness).
  */
 export const waitlistSignups = pgTable(
   'waitlist_signups',

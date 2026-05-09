@@ -18,11 +18,21 @@ Anything we noticed but did not ship. Each entry has a clear next step.
       is added in Module 6 dashboard work.
 - [ ] **AI cost-per-call estimates table.** `aiGuard()` needs per-service
       cost coefficients. Authoring this is part of Module 4 personalization.
-- [ ] **Decide pricing strategy.** Module 1 marketing references a
-      placeholder pricing page; needs founders' decision before launch.
 - [ ] **Replace placeholder app glyph.** `site-header.tsx` uses an inline
       speech-bubble + heart SVG; replace with the final brand mark when art
       is approved.
+
+## Module 1.5 closeouts
+
+- [ ] **Remove deprecated waitlist surface.** Module 1.5 deprecated the
+      `waitlist_signups` table, the `/api/waitlist` route handler, and the
+      `shared/schemas/waitlist.ts` zod schema (all marked `@deprecated`
+      in code). Keep them in place until Module 9 hardening, then: drop
+      the table via a destructive migration (after confirming zero new
+      rows for 60 days), delete the route handler, delete the schema.
+- [ ] **Apple touch icon PNG.** Currently using `apple-icon.svg`. iOS
+      home-screen install prefers PNG. Generate a PNG variant in Module 9
+      hardening (uses `sharp` or a build-time rasterizer).
 
 ## Lower priority
 

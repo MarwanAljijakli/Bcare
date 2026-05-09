@@ -5,8 +5,13 @@ export const waitlistRoleSchema = z.enum(['family', 'therapist', 'school', 'othe
 export type WaitlistRole = z.infer<typeof waitlistRoleSchema>;
 
 /**
- * Waitlist form input. Mirrors `db/schema/waitlist_signups`. Strict-but-friendly
- * email validation: zod's email() plus a length cap, no consecutive dots.
+ * @deprecated Retained only so the legacy /api/waitlist route handler keeps
+ * compiling for any in-flight inbound traffic. BlueCare is free + open as of
+ * Module 1.5 — no UI references this schema anymore. Slated for removal in
+ * Module 9 hardening (see docs/backlog.md).
+ *
+ * Legacy contract below — strict-but-friendly email validation, length cap,
+ * no consecutive dots, honeypot field.
  */
 export const waitlistSignupInputSchema = z.object({
   email: z

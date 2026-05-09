@@ -2,6 +2,17 @@ import { waitlistSignupInputSchema } from '@bluecare/shared';
 import { NextResponse, type NextRequest } from 'next/server';
 import { createSupabaseAdminClient } from '@/lib/supabase/server';
 
+/**
+ * @deprecated Module 1.5 (2026-05-09) made BlueCare free + open. The
+ * /pricing page and the waitlist UI are gone — no client code calls this
+ * route anymore. The handler is retained so any in-flight requests from
+ * cached pages or external integrations don't 404. Schedule for full
+ * removal in Module 9 hardening (see docs/backlog.md).
+ *
+ * Legacy contract preserved below: zod-validate + honeypot + rate limit
+ * + Supabase insert with duplicate-via-200 to avoid email enumeration.
+ */
+
 // Tiny in-memory rate limiter — IP-keyed, sliding window. Vercel functions
 // are stateless across cold starts so this is best-effort per warm instance.
 // A persistent rate limit lives in Module 9 hardening (Upstash or pg-based).
