@@ -1,0 +1,63 @@
+{
+  "name": "bluecare",
+  "version": "0.1.0",
+  "private": true,
+  "description": "BlueCare — AI-powered, bilingual AAC platform for children with autism",
+  "license": "UNLICENSED",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@10.17.0",
+  "scripts": {
+    "dev": "pnpm --filter @bluecare/web dev",
+    "build": "pnpm --filter @bluecare/web build",
+    "start": "pnpm --filter @bluecare/web start",
+    "typecheck": "pnpm -r --parallel typecheck",
+    "lint": "pnpm -r --parallel lint",
+    "lint:i18n": "node scripts/lint-i18n-direction.mjs",
+    "format": "prettier --write . --cache --log-level warn",
+    "format:check": "prettier --check . --cache --log-level warn",
+    "test": "pnpm -r --parallel test",
+    "test:watch": "pnpm --filter @bluecare/web test:watch",
+    "test:e2e": "pnpm --filter @bluecare/web test:e2e",
+    "test:a11y": "pnpm --filter @bluecare/web test:a11y",
+    "storybook": "pnpm --filter @bluecare/web storybook",
+    "storybook:build": "pnpm --filter @bluecare/web storybook:build",
+    "lighthouse": "pnpm --filter @bluecare/web lighthouse",
+    "db:generate": "pnpm --filter @bluecare/db generate",
+    "db:migrate": "pnpm --filter @bluecare/db migrate",
+    "db:seed": "pnpm --filter @bluecare/db seed",
+    "clean": "pnpm -r exec rimraf .next .turbo dist coverage playwright-report test-results storybook-static node_modules/.cache",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.6.0",
+    "@commitlint/config-conventional": "^19.6.0",
+    "@eslint/js": "^9.16.0",
+    "@next/eslint-plugin-next": "^14.2.20",
+    "@types/node": "^22.10.1",
+    "eslint": "^9.16.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "glob": "^11.0.0",
+    "globals": "^15.13.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.3.3",
+    "prettier-plugin-tailwindcss": "^0.6.8",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.18.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs,cjs}": [
+      "prettier --write --cache --log-level warn"
+    ],
+    "*.{json,md,yml,yaml,css}": [
+      "prettier --write --cache --log-level warn"
+    ]
+  }
+}

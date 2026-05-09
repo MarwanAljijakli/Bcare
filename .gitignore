@@ -1,0 +1,78 @@
+# dependencies
+node_modules
+.pnpm-store
+.pnp
+.pnp.*
+
+# next.js
+.next
+out
+.vercel
+
+# production
+build
+dist
+
+# environment
+.env
+.env.*
+!.env.example
+
+# testing / coverage
+coverage
+.nyc_output
+playwright-report
+test-results
+storybook-static
+lighthouse-reports
+
+# logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# editor / OS
+.DS_Store
+Thumbs.db
+.idea
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.recommended.json
+*.swp
+~$*
+~$*.docx
+
+# turbo / cache
+.turbo
+.cache
+.eslintcache
+.stylelintcache
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+
+# supabase
+.supabase
+supabase/.branches
+supabase/.temp
+
+# research artifacts (extracted from source docs, not part of shipping product)
+.bcare-research/
+
+# source materials provided to us — kept outside the product repo
+BlueCare-MasterPrompt.md
+Senior-BlueCare-FinalReport.docx
+Development and Validation of an Attention Scale for Children with Autism.pdf
+
+# generated
+public/sw.js
+public/workbox-*.js
+public/sitemap*.xml
+public/robots.txt.generated
+
+# misc
+*.local
+.DS_Store
+*.pem
+.husky/_

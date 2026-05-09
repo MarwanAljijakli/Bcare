@@ -1,0 +1,24 @@
+# Force LF line endings across the repo (Windows hosts have autocrlf disabled in this repo's config)
+* text=auto eol=lf
+
+# Treat as binary (avoid line-ending normalization)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.pdf binary
+*.docx binary
+*.xlsx binary
+*.zip binary
+*.gz binary
+*.tar binary
+*.mp3 binary
+*.mp4 binary
+*.wav binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary

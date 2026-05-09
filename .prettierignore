@@ -1,0 +1,16 @@
+node_modules
+.next
+out
+dist
+build
+coverage
+playwright-report
+test-results
+storybook-static
+.bcare-research
+pnpm-lock.yaml
+.pnpm-store
+*.min.js
+*.min.css
+public/locales
+.changeset
