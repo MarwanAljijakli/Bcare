@@ -29,12 +29,15 @@ export default defineConfig({
       use: { ...devices['iPad (gen 7)'] },
     },
   ],
+  // E2E runs against the production build by default — closer to what users
+  // actually see, and the build output is already validated by CI. Set
+  // PLAYWRIGHT_BASE_URL to skip launching a server.
   webServer: process.env.PLAYWRIGHT_BASE_URL
     ? undefined
     : {
-        command: 'pnpm dev',
+        command: 'pnpm exec next start -p 3000',
         url: BASE_URL,
         reuseExistingServer: !process.env.CI,
-        timeout: 120_000,
+        timeout: 180_000,
       },
 });
