@@ -30,34 +30,41 @@ export default async function BoardPage({ params }: { params: Promise<{ locale: 
   const { locale } = await params;
   setRequestLocale(locale);
 
-  // Confirm a child profile exists. If not, bounce to onboarding.
+  // Same redirect-outside-try pattern as the (app) layout. `redirect()`
+  // throws a NEXT_REDIRECT sentinel error that the framework catches —
+  // wrapping it in our own catch block silently swallows the redirect
+  // and 500s the page. Compute intent inside try, redirect outside.
+  let bounceTo: 'login' | 'onboarding' | null = null;
   try {
     const { createSupabaseServerClient } = await import('@/lib/supabase/server');
     const supabase = await createSupabaseServerClient();
     const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) redirect(`/${locale}/login`);
-    const childRes = await (
-      supabase.from('children') as never as {
-        select: (cols: string) => {
-          eq: (
-            col: string,
-            v: string,
-          ) => {
-            limit: (n: number) => Promise<{ data: { id: string }[] | null }>;
+    if (!userData.user) {
+      bounceTo = 'login';
+    } else {
+      const childRes = await (
+        supabase.from('children') as never as {
+          select: (cols: string) => {
+            eq: (
+              col: string,
+              v: string,
+            ) => {
+              limit: (n: number) => Promise<{ data: { id: string }[] | null }>;
+            };
           };
-        };
-      }
-    )
-      .select('id')
-      .eq('caregiver_id', userData.user.id)
-      .limit(1);
-    if ((childRes.data?.length ?? 0) === 0) {
-      redirect(`/${locale}/onboarding`);
+        }
+      )
+        .select('id')
+        .eq('caregiver_id', userData.user.id)
+        .limit(1);
+      if ((childRes.data?.length ?? 0) === 0) bounceTo = 'onboarding';
     }
   } catch {
-    // Real-mode unavailable → still render so dev/mock keeps working;
-    // the tRPC bootstrap call inside the client will surface the error.
+    // Supabase unreachable — let the client bootstrap surface the error
+    // rather than 500'ing the page.
   }
+  if (bounceTo === 'login') redirect(`/${locale}/login`);
+  if (bounceTo === 'onboarding') redirect(`/${locale}/onboarding`);
 
   return <BoardClient locale={locale} />;
 }

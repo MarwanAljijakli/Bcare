@@ -21,15 +21,24 @@ export default async function AppLayout({
 
   // Auth gate — redirect to /login when no session. The redirect happens
   // server-side so unauthorized users never see anything.
+  //
+  // CRITICAL: `redirect()` throws a NEXT_REDIRECT error that the framework
+  // catches to perform the redirect. We MUST NOT wrap that throw in a
+  // try/catch (or the redirect gets silently swallowed and the request
+  // 500s after the page tries to render with no user). We compute the
+  // intent inside the try, then redirect outside.
+  let mustRedirectToLogin = false;
   try {
     const { createSupabaseServerClient } = await import('@/lib/supabase/server');
     const supabase = await createSupabaseServerClient();
     const { data } = await supabase.auth.getUser();
-    if (!data.user) redirect(`/${locale}/login`);
+    if (!data.user) mustRedirectToLogin = true;
   } catch {
-    // Real-mode unavailable → still render so /settings shows a friendly
-    // "auth not configured" via the tRPC error path.
+    // Supabase unreachable / misconfigured. Treat as unauthenticated so
+    // the user lands on /login rather than seeing a 500.
+    mustRedirectToLogin = true;
   }
+  if (mustRedirectToLogin) redirect(`/${locale}/login`);
 
   return (
     <AppProviders>
