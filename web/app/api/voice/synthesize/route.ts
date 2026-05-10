@@ -18,7 +18,7 @@
  * blocks normal inserts.
  */
 import { NextResponse, type NextRequest } from 'next/server';
-import { speak } from '@/lib/voice';
+import { speakPinned, speakWithFallback, type VoiceProvider } from '@/lib/voice';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -29,6 +29,11 @@ interface RequestBody {
   child_id?: string;
   voice_key?: string;
   speed?: number;
+  /** Optional — when set to 'elevenlabs' | 'openai', pins to that
+   *  provider with no fallback. Used by the /voice-test A/B UI to
+   *  compare providers head-to-head. When omitted, the normal
+   *  primary→fallback chain fires. */
+  provider?: string;
 }
 
 function badRequest(detail: string) {
@@ -47,6 +52,13 @@ export async function POST(req: NextRequest) {
   const childId = body.child_id;
   const voiceKey = body.voice_key as 'charlotte' | 'sarah' | undefined;
   const speed = typeof body.speed === 'number' ? body.speed : 1.0;
+  const pinned: VoiceProvider | undefined =
+    body.provider === 'elevenlabs' || body.provider === 'openai'
+      ? (body.provider as VoiceProvider)
+      : undefined;
+  if (body.provider !== undefined && pinned === undefined) {
+    return badRequest('provider must be elevenlabs|openai');
+  }
   if (!text) return badRequest('text required');
   if (text.length > 5000) return badRequest('text too long');
   if (language !== 'en' && language !== 'ar') return badRequest('language must be en|ar');
@@ -84,14 +96,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'not_authorized' }, { status: 403 });
     }
 
-    const result = await speak({
-      text,
-      locale: language,
-      voice: voiceKey,
-      speed,
-      childId,
-      supabaseAdmin: supabaseAdmin as never,
-    });
+    const result = pinned
+      ? await speakPinned({
+          text,
+          locale: language,
+          voice: voiceKey,
+          speed,
+          childId,
+          supabaseAdmin: supabaseAdmin as never,
+          provider: pinned,
+        })
+      : await speakWithFallback({
+          text,
+          locale: language,
+          voice: voiceKey,
+          speed,
+          childId,
+          supabaseAdmin: supabaseAdmin as never,
+        });
     if (!result.ok) {
       // cap_reached
       return NextResponse.json(
@@ -112,6 +134,7 @@ export async function POST(req: NextRequest) {
       cost_usd: result.result.cost_usd,
       voice: result.result.voice,
       provider: result.result.provider,
+      fallback_trigger: result.result.fallback_trigger ?? null,
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : 'unknown_error';

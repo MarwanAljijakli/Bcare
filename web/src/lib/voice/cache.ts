@@ -22,7 +22,10 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 const BUCKET = 'tts-cache';
 const PREFIX = 'tts/';
 
+export type CacheProvider = 'elevenlabs' | 'openai';
+
 export interface CacheKeyInput {
+  provider: CacheProvider;
   language: 'en' | 'ar';
   voice_id: string;
   speed: number;
@@ -35,9 +38,17 @@ export interface CachedAudio {
   objectPath: string;
 }
 
-/** Deterministic hash for the cache key. Lowercase + trim before hashing. */
+/**
+ * Deterministic hash for the cache key. Lowercase + trim before hashing.
+ *
+ * Includes the provider name as a discriminator — so ElevenLabs-generated
+ * audio and OpenAI-generated audio for the same text live at different
+ * cache keys. Per Quality Fix Phase 8.B directive: "Cache key includes
+ * the provider name … cached audio plays consistently from whichever
+ * provider generated it."
+ */
 export function computeCacheKey(input: CacheKeyInput): string {
-  const normalized = `${input.language}:${input.voice_id}:${input.speed.toFixed(2)}:${input.text.trim().toLowerCase()}`;
+  const normalized = `${input.provider}:${input.language}:${input.voice_id}:${input.speed.toFixed(2)}:${input.text.trim().toLowerCase()}`;
   return createHash('sha256').update(normalized, 'utf8').digest('hex');
 }
 

@@ -19,7 +19,7 @@
  * product per the Quality Fix override.
  */
 import { NextResponse, type NextRequest } from 'next/server';
-import { speak } from '@/lib/voice';
+import { speakWithFallback } from '@/lib/voice';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -46,9 +46,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const { createSupabaseServerClient, createSupabaseAdminClient } = await import(
-      '@/lib/supabase/server'
-    );
+    const { createSupabaseServerClient, createSupabaseAdminClient } =
+      await import('@/lib/supabase/server');
     const supabase = await createSupabaseServerClient();
     const supabaseAdmin = createSupabaseAdminClient();
 
@@ -57,7 +56,10 @@ export async function GET(req: NextRequest) {
     const { data: childRow } = await (
       supabase.from('children') as never as {
         select: (cols: string) => {
-          eq: (col: string, v: string) => {
+          eq: (
+            col: string,
+            v: string,
+          ) => {
             maybeSingle: () => Promise<{ data: { id: string } | null }>;
           };
         };
@@ -68,7 +70,7 @@ export async function GET(req: NextRequest) {
       .maybeSingle();
     if (!childRow) return NextResponse.json({ error: 'not_authorized' }, { status: 403 });
 
-    const result = await speak({
+    const result = await speakWithFallback({
       text,
       locale,
       voice,
@@ -97,6 +99,9 @@ export async function GET(req: NextRequest) {
         { status: 503 },
       );
     }
-    return NextResponse.json({ error: 'preview_failed', detail: message.slice(0, 240) }, { status: 502 });
+    return NextResponse.json(
+      { error: 'preview_failed', detail: message.slice(0, 240) },
+      { status: 502 },
+    );
   }
 }

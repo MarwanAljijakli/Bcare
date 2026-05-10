@@ -20,7 +20,14 @@
  */
 import { NextResponse } from 'next/server';
 import { isClaudeAvailable, claudeDirect } from '@/lib/ai/anthropic';
-import { isElevenLabsAvailable, isWhisperAvailable, cacheStats30d } from '@/lib/voice';
+import {
+  cacheStats30d,
+  fallbackProvider,
+  isElevenLabsAvailable,
+  isOpenAiTtsAvailable,
+  isWhisperAvailable,
+  primaryProvider,
+} from '@/lib/voice';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -28,6 +35,7 @@ export const dynamic = 'force-dynamic';
 interface UsageRow {
   service: string;
   cost_usd: number;
+  units: number;
   created_at: string;
 }
 
@@ -44,13 +52,30 @@ export async function GET() {
         };
       }
     )
-      .select('service, cost_usd, created_at')
+      .select('service, cost_usd, units, created_at')
       .gte('created_at', since);
     const usage = usageRes.data ?? [];
     const ttsCalls = usage.filter((u) => u.service === 'elevenlabs_tts').length;
     const sttCalls = usage.filter((u) => u.service === 'whisper_stt').length;
     const claudeCalls = usage.filter((u) => u.service.startsWith('claude_')).length;
     const totalCost = usage.reduce((sum, u) => sum + Number(u.cost_usd ?? 0), 0);
+
+    // Phase 8.B fallback telemetry. Fallback triggers are recorded as
+    // azure_tts rows with units=0 + cost=0 (see voice/index.ts:
+    // recordFallbackTrigger). Module 9 enum cleanup will split this
+    // into a dedicated service value; for now this works without a
+    // migration.
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    const todayIso = today.toISOString();
+    const fallbackRows = usage.filter(
+      (u) =>
+        u.service === 'azure_tts' && Number(u.units ?? 0) === 0 && Number(u.cost_usd ?? 0) === 0,
+    );
+    const fallbackCountToday = fallbackRows.filter((u) => u.created_at >= todayIso).length;
+    const lastFallbackAt = fallbackRows.length
+      ? fallbackRows.reduce((max, u) => (u.created_at > max ? u.created_at : max), '')
+      : null;
 
     const cacheStats = await cacheStats30d(supabaseAdmin as never);
 
@@ -75,10 +100,16 @@ export async function GET() {
     return NextResponse.json({
       ok: true,
       elevenLabsConfigured: isElevenLabsAvailable(),
+      openAiTtsConfigured: isOpenAiTtsAvailable(),
       whisperConfigured: isWhisperAvailable(),
       claudeConfigured: isClaudeAvailable(),
       claudeReachable,
       claudeLatencyMs,
+      // Phase 8.B — which provider is primary right now (per VOICE_PROVIDER_PRIMARY env)?
+      primaryProvider: primaryProvider(),
+      fallbackProvider: fallbackProvider(),
+      lastFallbackAt,
+      fallbackCountToday,
       ttsCalls30d: ttsCalls,
       ttsCacheHits30d: cacheStats.ttsCacheHits,
       ttsCacheHitRate30d: cacheStats.ttsCacheHitRate,
