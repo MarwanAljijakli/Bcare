@@ -16,7 +16,7 @@ interface SymbolRow {
   label_en: string;
   label_ar: string;
   image_path: string;
-  category: string | null;
+  categories: string[];
   tags: string[];
 }
 
@@ -41,7 +41,7 @@ async function main(): Promise<void> {
       };
     }
   )
-    .select('id, label_en, label_ar, image_path, category, tags')
+    .select('id, label_en, label_ar, image_path, categories, tags')
     .eq('status', 'active');
   const symbols = all.data ?? [];
   if (symbols.length === 0) {
@@ -92,7 +92,7 @@ async function main(): Promise<void> {
     const imgUrl = `${SUPABASE_PUBLIC}/storage/v1/object/public/symbols-public/${s.image_path}`;
     console.info(`## ${s.label_en} / ${s.label_ar}`);
     console.info(`- **Image**: ${imgUrl}`);
-    console.info(`- **Category**: ${s.category ?? '—'}`);
+    console.info(`- **Category**: ${(s.categories ?? [])[0] ?? '—'}`);
     console.info(
       `- **ARASAAC ID**: ${s.tags.find((t) => t.startsWith('arasaac:'))?.slice('arasaac:'.length) ?? '?'}`,
     );
