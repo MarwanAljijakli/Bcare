@@ -4,6 +4,7 @@ import { boardRouter } from './board';
 import { consentRouter } from './consent';
 import { invitesRouter } from './invites';
 import { onboardingRouter } from './onboarding';
+import { personalizationRouter } from './personalization';
 
 export const appRouter = router({
   account: accountRouter,
@@ -11,6 +12,7 @@ export const appRouter = router({
   consent: consentRouter,
   invites: invitesRouter,
   onboarding: onboardingRouter,
+  personalization: personalizationRouter,
 });
 
 export type AppRouter = typeof appRouter;

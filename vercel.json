@@ -3,5 +3,11 @@
   "framework": "nextjs",
   "installCommand": "pnpm install --frozen-lockfile",
   "buildCommand": "pnpm run build",
-  "outputDirectory": "web/.next"
+  "outputDirectory": "web/.next",
+  "crons": [
+    {
+      "path": "/api/cron/personalization",
+      "schedule": "0 3 * * *"
+    }
+  ]
 }
