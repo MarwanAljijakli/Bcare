@@ -122,6 +122,97 @@ pnpm exec tsx db/scripts/send-test-magic-link.ts <your-email>
 The script POSTs against the LIVE `/api/auth/login` (or `/api/auth/signup`
 if the user doesn't exist yet) — same path the form would hit.
 
+## Auth bypass mode (Module 2.A.1.bypass)
+
+**Status (2026-05-09 → market launch):** auth bypass is INTENTIONALLY
+ACTIVE in production so Modules 6–9 can be built and tested in-browser
+without email-loop ceremony. Every visitor to <https://bcare-ten.vercel.app>
+is auto-signed-in as `dev-caregiver@bluecare.test`. The yellow/black
+sticky banner at the top of every page is the visual proof.
+
+### What's enforced vs. what's skipped
+
+- **Skipped:** the email handshake. No magic-link click, no SMTP roundtrip,
+  no signup form. `/api/auth/dev-login` mints a real cookie-bound Supabase
+  session via `admin.generateLink → cookieClient.verifyOtp`.
+- **Enforced (unchanged from real auth):** RLS, consent records, audit
+  log, profile + child rows, parental PIN, every server-side auth check.
+  We are skipping the human step, NOT the database security model.
+
+### Knobs
+
+| Env var                           | Scope            | Purpose                                            |
+| --------------------------------- | ---------------- | -------------------------------------------------- |
+| `AUTH_BYPASS_USER_ID`             | server-only      | The dev caregiver UUID. NEVER expose.              |
+| `NEXT_PUBLIC_AUTH_BYPASS`         | public (browser) | `1` to render DevModeBanner. Boolean only.         |
+| `ALLOW_AUTH_BYPASS_IN_PRODUCTION` | build-time guard | `true` to allow bypass in `VERCEL_ENV=production`. |
+
+`next.config.mjs` THROWS at build time if `VERCEL_ENV=production` AND
+`AUTH_BYPASS_USER_ID` is set AND `ALLOW_AUTH_BYPASS_IN_PRODUCTION` is
+not `true`. The third flag is an explicit, auditable opt-in — a future
+"let me just remove the bypass env var" misstep cannot accidentally
+leave bypass active in the launch build without ALSO setting the third
+flag, which would be visible in any code review of the env config.
+
+### Pre-launch auth re-enablement checklist
+
+Run this checklist when Modules 6–9 are done and BlueCare is ready for
+real users. Every step is mandatory; skipping any one of them is a
+launch blocker.
+
+1. **Remove the env vars from every Vercel scope** (production, preview,
+   development):
+
+   ```bash
+   vercel env rm AUTH_BYPASS_USER_ID production
+   vercel env rm AUTH_BYPASS_USER_ID preview
+   vercel env rm AUTH_BYPASS_USER_ID development
+   vercel env rm NEXT_PUBLIC_AUTH_BYPASS production
+   vercel env rm NEXT_PUBLIC_AUTH_BYPASS preview
+   vercel env rm NEXT_PUBLIC_AUTH_BYPASS development
+   vercel env rm ALLOW_AUTH_BYPASS_IN_PRODUCTION production
+   vercel env rm ALLOW_AUTH_BYPASS_IN_PRODUCTION preview
+   vercel env rm ALLOW_AUTH_BYPASS_IN_PRODUCTION development
+   ```
+
+2. **Force redeploy** so the new bundle is built without the bypass:
+
+   ```bash
+   vercel --prod --force
+   ```
+
+3. **Verify `/api/health/auth` reports `bypassActive:false`:**
+
+   ```bash
+   curl -sS https://bcare-ten.vercel.app/api/health/auth | jq .bypassActive
+   # → false
+   ```
+
+4. **Visual sweep:** load <https://bcare-ten.vercel.app/en>. The
+   yellow/black DevModeBanner MUST be gone. If it's still there, the
+   redeploy didn't pick up the env-var removal — repeat step 2.
+
+5. **Real signup works:** run the production signup probe (above § "Verifying
+   production signup works"). Must return 200 with `mode:"real"`.
+
+6. **Wipe the dev caregiver + all test data:**
+
+   ```bash
+   pnpm exec tsx db/scripts/delete-dev-caregiver.ts
+   ```
+
+   This removes the auth.users row, public.users mirror, profile,
+   children (cascades through sessions / events / progress /
+   gamification / voices / vocabulary), and consent_records.
+
+7. **Final sweep:** load `/en/login` in an incognito window. You should
+   see the real login form, NO banner, NO auto-signin. Sign up with a
+   fresh email — the magic-link flow must complete end-to-end.
+
+After step 7, the bypass is fully removed. The cron drift detector at
+`/api/cron/personalization` will stop emitting `auth_bypass_active_in_production`
+audit-log entries on its next run.
+
 ## Database migrations
 
 **Canonical path** (since Module 3.1, 2026-05-10): every migration is a `.sql`
