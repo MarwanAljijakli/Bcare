@@ -29,3 +29,5 @@ export * from './waitlist_signups';
 export * from './therapist_invites';
 export * from './therapist_grants';
 export * from './draft_onboarding';
+// Module 4 additions
+export * from './vocabulary_suggestions';

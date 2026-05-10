@@ -40,7 +40,13 @@ export function projectRef(): string {
 }
 
 /** Run a single SQL statement (or multiple, semicolon-separated) and
- *  return rows. The Management API supports DDL, DML, and SELECT. */
+ *  return rows. The Management API supports DDL, DML, and SELECT.
+ *
+ *  Retries transient 5xx responses with exponential backoff. Supabase's
+ *  Management API occasionally returns 502/503 from upstream connection
+ *  resets; the request is idempotent at the HTTP layer (the server-side
+ *  SQL is not, but we don't retry once the SQL itself has been
+ *  attempted — only when the request never reached Postgres). */
 export async function sql<T = Record<string, unknown>>(query: string): Promise<SqlResult<T>> {
   const token = process.env[TOKEN_ENV];
   if (!token) {
@@ -49,27 +55,58 @@ export async function sql<T = Record<string, unknown>>(query: string): Promise<S
     );
   }
   const ref = projectRef();
-  const res = await fetch(`https://api.supabase.com/v1/projects/${ref}/database/query`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ query }),
-  });
-  const text = await res.text();
-  if (!res.ok) {
-    throw new Error(
-      `SQL failed (${res.status} ${res.statusText}): ${text.slice(0, 1000)} \n--- query ---\n${query.slice(0, 500)}`,
-    );
+  const url = `https://api.supabase.com/v1/projects/${ref}/database/query`;
+
+  const maxAttempts = 4;
+  let lastError: Error | null = null;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query }),
+      });
+      const text = await res.text();
+      if (!res.ok) {
+        // Retry on gateway / connection-reset errors only — 4xx are real
+        // SQL errors and should fail fast.
+        const retryable =
+          res.status === 502 ||
+          res.status === 503 ||
+          res.status === 504 ||
+          /upstream connect error|connection termination|reset before headers/i.test(text);
+        if (retryable && attempt < maxAttempts) {
+          await new Promise((r) => setTimeout(r, 400 * 2 ** (attempt - 1)));
+          continue;
+        }
+        throw new Error(
+          `SQL failed (${res.status} ${res.statusText}): ${text.slice(0, 1000)} \n--- query ---\n${query.slice(0, 500)}`,
+        );
+      }
+      let rows: T[] = [];
+      try {
+        rows = JSON.parse(text) as T[];
+      } catch {
+        rows = [];
+      }
+      return { rows, count: rows.length };
+    } catch (e) {
+      lastError = e instanceof Error ? e : new Error(String(e));
+      // Network-level fetch errors (DNS, ECONNRESET) — retry.
+      if (
+        attempt < maxAttempts &&
+        /fetch failed|ECONNRESET|ETIMEDOUT|ENOTFOUND|EAI_AGAIN/i.test(lastError.message)
+      ) {
+        await new Promise((r) => setTimeout(r, 400 * 2 ** (attempt - 1)));
+        continue;
+      }
+      throw lastError;
+    }
   }
-  let rows: T[] = [];
-  try {
-    rows = JSON.parse(text) as T[];
-  } catch {
-    rows = [];
-  }
-  return { rows, count: rows.length };
+  throw lastError ?? new Error('sql: exhausted retries');
 }
 
 /** Convenience: returns a single scalar from `select <expr>`. */

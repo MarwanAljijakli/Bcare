@@ -33,7 +33,7 @@
  */
 
 import './lib/env';
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -49,20 +49,36 @@ interface MigrationFile {
 
 function discoverMigrations(): MigrationFile[] {
   const out: MigrationFile[] = [];
-  // Hand-authored files (the canonical BlueCare set).
-  const order: MigrationFile[] = [
+  // The schema bundle must run first; rls/policies attaches to those
+  // tables; subsequent NNNN_*.sql migrations extend on top.
+  const fixed: MigrationFile[] = [
     { path: join(REPO_DB, 'migrations', '0000_initial_schema.sql'), label: '0000_initial_schema' },
     { path: join(REPO_DB, 'rls', 'policies.sql'), label: 'rls/policies' },
-    { path: join(REPO_DB, 'migrations', '0001_rls_policies.sql'), label: '0001_rls_policies' },
-    {
-      path: join(REPO_DB, 'migrations', '0002_storage_buckets.sql'),
-      label: '0002_storage_buckets',
-    },
   ];
-  for (const m of order) {
+  for (const m of fixed) {
     if (existsSync(m.path)) out.push(m);
   }
+  // Then every db/migrations/NNNN_*.sql with NNNN > 0000, lex-ordered.
+  const migrationsDir = join(REPO_DB, 'migrations');
+  if (existsSync(migrationsDir)) {
+    const entries = readdirSync(migrationsDir)
+      .filter((f) => /^\d{4}_.*\.sql$/.test(f) && !f.startsWith('0000_'))
+      .sort();
+    for (const f of entries) {
+      out.push({ path: join(migrationsDir, f), label: f.replace(/\.sql$/, '') });
+    }
+  }
   return out;
+}
+
+/**
+ * Postgres errors that mean "this object already exists" — safe to skip
+ * when re-running an idempotent migration. CREATE POLICY in particular
+ * has no `if not exists` form, so we have to recover at the runner level.
+ */
+function isAlreadyExists(err: Error): boolean {
+  const msg = err.message;
+  return /already exists/i.test(msg);
 }
 
 /**
@@ -143,6 +159,7 @@ async function main(): Promise<void> {
     const stmts = splitStatements(text);
     console.info(`  ${stmts.length} statement(s).`);
     let i = 0;
+    let skipped = 0;
     for (const s of stmts) {
       i++;
       totalStmts++;
@@ -151,6 +168,12 @@ async function main(): Promise<void> {
         totalOk++;
         process.stdout.write('.');
       } catch (e) {
+        const err = e instanceof Error ? e : new Error(String(e));
+        if (isAlreadyExists(err)) {
+          skipped++;
+          process.stdout.write('=');
+          continue;
+        }
         console.error(`\n  ✗ Statement ${i} failed.`);
         console.error(`  --- statement ---`);
         console.error(
@@ -161,11 +184,11 @@ async function main(): Promise<void> {
             .join('\n'),
         );
         console.error(`  --- error ---`);
-        console.error(`  ${e instanceof Error ? e.message : String(e)}`);
+        console.error(`  ${err.message}`);
         process.exit(1);
       }
     }
-    console.info(`\n  ✓ ${stmts.length} statement(s) applied.`);
+    console.info(`\n  ✓ ${stmts.length} statement(s) applied (${skipped} already-exists skipped).`);
   }
   console.info(
     `\nTotal: ${totalOk}/${totalStmts} statements applied across ${files.length} files.`,
