@@ -57,6 +57,10 @@ tsconfig.tsbuildinfo
 supabase/.branches
 supabase/.temp
 
+# Module 3.1 — local-only backup of leftover tables from a prior unrelated
+# experiment that lived on the same Supabase project. Do not commit.
+bcare-old-experiment-backup/
+
 # research artifacts (extracted from source docs, not part of shipping product)
 .bcare-research/
 

@@ -75,7 +75,7 @@ async function main(): Promise<void> {
     metadata: { source: 'cli/invite-admin', email },
   });
 
-  console.log(`✓ ${email} is now an admin (profiles.role=admin).`);
+  console.info(`✓ ${email} is now an admin (profiles.role=admin).`);
 }
 
 main().catch((e: unknown) => {
