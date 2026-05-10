@@ -25,6 +25,7 @@
     "test": "pnpm -r --parallel test",
     "test:watch": "pnpm --filter @bluecare/web test:watch",
     "test:e2e": "pnpm --filter @bluecare/web test:e2e",
+    "test:e2e:real": "pnpm --filter @bluecare/web test:e2e:real",
     "test:a11y": "pnpm --filter @bluecare/web test:a11y",
     "storybook": "pnpm --filter @bluecare/web storybook",
     "storybook:build": "pnpm --filter @bluecare/web storybook:build",
