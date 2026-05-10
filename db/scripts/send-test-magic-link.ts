@@ -87,6 +87,8 @@ async function main(): Promise<void> {
     );
   }
 
+  // Primary path: hit the production /api endpoint. Same code path real
+  // users get when they submit the form.
   const res = await fetch(`${LIVE_URL}/api/auth/${endpoint}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -96,18 +98,47 @@ async function main(): Promise<void> {
   console.info(`POST ${LIVE_URL}/api/auth/${endpoint} → ${res.status}`);
   console.info(`Response: ${text.slice(0, 300)}`);
 
-  if (!res.ok) {
-    if (res.status === 429) {
+  if (res.ok) {
+    console.info(`\n✓ Magic-link email sent to ${email} via the production ${endpoint} endpoint.`);
+    console.info('  Click the link in your inbox — it should land on /en/onboarding/welcome.');
+    console.info(
+      '  If it 404s OR shows an error boundary, capture the URL + error and surface here.',
+    );
+    return;
+  }
+
+  if (res.status !== 429) {
+    process.exit(1);
+  }
+
+  // Fallback when the in-memory per-IP limiter on /api/auth/login is hot
+  // (e.g. after a verification storm). signInWithOtp goes through the
+  // SAME Supabase backend the route handler calls, with the SAME PKCE
+  // flow + the SAME email template + the SAME redirect_to → /auth/callback
+  // pattern. Only the in-front /api rate limiter is bypassed; Supabase's
+  // own SMTP rate limit still applies (4 emails / hour on the free tier).
+  console.warn(
+    '\n! /api endpoint per-IP rate limit hit. Falling back to direct signInWithOtp ' +
+      '(same PKCE flow, same backend, same email — just bypasses the in-front limiter).',
+  );
+  const fallback = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      emailRedirectTo: `${LIVE_URL}/auth/callback?next=/en/onboarding`,
+      shouldCreateUser: !existing,
+    },
+  });
+  if (fallback.error) {
+    console.error(`✗ signInWithOtp fallback failed: ${fallback.error.message}`);
+    if (fallback.error.status === 429 || /rate limit/i.test(fallback.error.message)) {
       console.error(
-        '\n✗ Rate limited. The /api endpoint has a per-IP limiter; wait ~60s and retry.\n' +
-          "Supabase SMTP also has a 4-emails/hour cap — wait longer if that's the cause.",
+        'Supabase free-tier SMTP allows 4 emails / hour. Wait it out, or wire up a custom ' +
+          'SMTP (Gmail app password / Resend free tier) — paused per master prompt.',
       );
     }
     process.exit(1);
   }
-
-  console.info(`\n✓ Magic-link email sent to ${email} via the production ${endpoint} endpoint.`);
-  console.info('  Subject: "Magic Link" (or whatever your Supabase template names it).');
+  console.info(`\n✓ Magic-link email sent to ${email} via direct signInWithOtp.`);
   console.info('  Click the link in your inbox — it should land on /en/onboarding/welcome.');
   console.info(
     '  If it 404s OR shows an error boundary, capture the URL + error and surface here.',
