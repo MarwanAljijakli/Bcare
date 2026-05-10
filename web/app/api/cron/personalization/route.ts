@@ -43,6 +43,55 @@ export async function GET(req: NextRequest) {
   let children = 0;
   let totalSuggestions = 0;
   let totalAdvances = 0;
+
+  // Probe /api/health/auth before doing any work — if the project ref
+  // drifts (Module 2.A.1.fix postmortem), audit-log the drift instead
+  // of silently writing personalization data to the wrong project.
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
+    const probe = await fetch(`${baseUrl}/api/health/auth`, { method: 'GET' });
+    const probeBody = (await probe.json().catch(() => ({}))) as {
+      ok?: boolean;
+      supabaseProject?: string;
+      reason?: string;
+    };
+    const expectedRef = 'ikaaxfhenfbpfjqboixk';
+    const driftDetected =
+      !probe.ok || probeBody.ok !== true || probeBody.supabaseProject !== expectedRef;
+    if (driftDetected) {
+      await (
+        supabaseAdmin.from('audit_log') as never as {
+          insert: (row: Record<string, unknown>) => Promise<unknown>;
+        }
+      ).insert({
+        actor_id: null,
+        action: 'admin_action',
+        target_type: 'config_drift',
+        target_id: null,
+        metadata: {
+          kind: 'config_drift_detected',
+          probeStatus: probe.status,
+          probeOk: probeBody.ok,
+          observedProject: probeBody.supabaseProject ?? null,
+          expectedProject: expectedRef,
+          reason: probeBody.reason ?? null,
+        },
+      });
+      return NextResponse.json(
+        {
+          ok: false,
+          reason: 'config_drift',
+          observedProject: probeBody.supabaseProject ?? null,
+          expectedProject: expectedRef,
+        },
+        { status: 503 },
+      );
+    }
+  } catch {
+    // Health probe itself failed — let the recompute run anyway since
+    // the worst case is wasted CPU. Module 9 escalates to Sentry.
+  }
+
   try {
     const summary = await recomputeAll(supabaseAdmin as never);
     children = summary.children;
