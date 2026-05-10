@@ -35,6 +35,55 @@
   window.
 - Document in `docs/security-incidents/{date}.md`.
 
+## Verifying production signup works
+
+**Required at every CHECKPOINT going forward.** A 200 from `/api/health` and a
+400 from a malformed `/api/auth/signup` body do NOT prove signup works — both
+were green during the Module 2.A.1.fix incident while real users got 500s.
+
+### Step 1 — curl probe against the live deploy
+
+```bash
+PROBE_EMAIL="bcare-cli+verify-$(date +%s)@gmail.com"
+PROBE_HASH="$(printf 'consent-text-2026-05-09.1' | sha256sum | awk '{print $1}')"
+curl -sS -i -X POST "https://bcare-ten.vercel.app/api/auth/signup" \
+  -H "Content-Type: application/json" \
+  -d "{\"method\":\"magic-link\",\"email\":\"$PROBE_EMAIL\",\"fullName\":\"Verify Probe\",\"role\":\"family\",\"consent\":{\"granted\":true,\"version\":\"2026-05-09.1\",\"textHash\":\"$PROBE_HASH\"},\"locale\":\"en\"}"
+```
+
+Expected: HTTP 200 (or 201) + body `{"ok":true,"mode":"real","method":"magic-link"}`.
+Anything else — including `"detail":"Database error saving new user"` — is a
+hard fail; do not declare the CHECKPOINT done.
+
+### Step 2 — health-auth probe + project ref match
+
+```bash
+curl -sS https://bcare-ten.vercel.app/api/health/auth
+```
+
+Expected: `{"ok":true,"supabaseProject":"ikaaxfhenfbpfjqboixk", ...}`.
+Wrong `supabaseProject` = project-ref drift; rotate Vercel env vars.
+
+### Step 3 — automated regression spec
+
+```bash
+pnpm test:e2e:real
+```
+
+Two tests, both must pass:
+
+- `POST /api/auth/signup with a throwaway email returns 201 + ok:true`
+- `GET /api/health/auth returns ok:true with the expected supabaseProject ref`
+
+### Step 4 — real-browser end-to-end (manual, CHECKPOINT-only)
+
+Once per CHECKPOINT, open https://bcare-ten.vercel.app/en/signup in a fresh
+incognito window, submit a real form, click the magic-link email, complete
+the 8-step onboarding wizard, and confirm the post-finalize redirect lands
+on `/en/dashboard` with a session.
+
+Skipping this is fine for sub-iterations; it's required at module CHECKPOINTs.
+
 ## Database migrations
 
 **Canonical path** (since Module 3.1, 2026-05-10): every migration is a `.sql`

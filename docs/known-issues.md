@@ -151,6 +151,90 @@ mirror.
 
 ## Resolved (last 14 days)
 
+### 2026-05-10 — Module 2.A.1.fix: production signup returned "Database error saving new user" (RESOLVED)
+
+**Symptom**: Real users hitting https://bcare-ten.vercel.app/en/signup with a
+valid form payload (role=parent, full name, email, consent checked) saw "We
+couldn't reach the server. Please try again in a moment." on the client.
+The server was returning HTTP 500 with body
+`{"type":"https://bluecare.app/errors/auth_failed","title":"Signup failed",
+"status":500,"detail":"Database error saving new user","instance":"/api/auth/signup"}`.
+The Module 4 CHECKPOINT probes had reported all green — but they only
+exercised mock/empty-body paths, not a real submit.
+
+**Root cause**: Postgres fires multiple AFTER triggers on the same event in
+**alphabetical order by trigger name**. Two triggers were attached to
+`auth.users` after INSERT:
+
+- `on_auth_user_consent_signup` → `copy_consent_to_records()` (consent fanout)
+- `on_auth_user_created` → `handle_new_user()` (mirror to `public.users`)
+
+`on_auth_user_consent_signup` < `on_auth_user_created` alphabetically, so
+the consent trigger ran first. It tried to
+`INSERT INTO public.consent_records (granted_by_id, ...) VALUES (new.id, ...)`,
+but the FK `consent_records.granted_by_id → public.users.id` referenced a row
+that didn't exist yet (the mirror trigger hadn't run). The FK violation
+rolled back the entire signup transaction with the standard
+"Database error saving new user" message Supabase Auth surfaces for any
+trigger failure.
+
+**Why earlier verify-end-to-end.ts passed**: that script created its test
+user with `user_metadata.consent.dataProcessing` (not `consent.granted`).
+The consent trigger's guard `(consent_data->>'granted')::boolean is distinct
+from true` evaluated true (NULL is distinct from true), so the trigger
+short-circuited before hitting the FK. The real signup payload sets
+`consent.granted = true`, which exercised the broken path.
+
+**Secondary issue caught during the fix**: Supabase Auth `site_url` was
+still the dashboard default `http://localhost:3000` and `uri_allow_list` was
+empty. Even after the trigger fix, magic-link emails would have pointed at
+localhost. Both were patched via the Management API to:
+
+- `site_url = https://bcare-ten.vercel.app`
+- `uri_allow_list = https://bcare-ten.vercel.app/**,http://localhost:3000/**`
+
+**Fix**:
+
+1. Combined the two trigger functions into one `handle_new_auth_user()` that
+   mirrors `public.users` first, then handles consent fanout, both wrapped
+   in EXCEPTION blocks so a future bug in either side can never block a real
+   signup. Single trigger `on_auth_user_signup` replaces the two old triggers.
+2. Migration `db/migrations/0004_fix_auth_user_trigger.sql` drops the old
+   `on_auth_user_created` + `on_auth_user_consent_signup` triggers and
+   `handle_new_user` + `copy_consent_to_records` functions. Idempotent.
+3. Patched Supabase Auth config (site_url + uri_allow_list).
+
+**Verification on live deploy**:
+
+- `POST /api/auth/signup` with a real payload now returns
+  `{"ok":true,"mode":"real","method":"magic-link"}` (status 200).
+- A row appears in `auth.users` with the correct role/locale/consent metadata.
+- The `handle_new_auth_user` trigger mirrors to `public.users`.
+- `consent_records` gets a `data_processing` granted=true row keyed to the
+  caregiver's `granted_by_id`.
+
+**Regression net** (so this never silently breaks again):
+
+- New endpoint `GET /api/health/auth` exercises a real Supabase call
+  (`auth.admin.listUsers({page:1,perPage:1})`) and asserts the project ref
+  matches what the Vercel env var points at. Returns
+  `{ok:true,supabaseProject:"ikaaxfhenfbpfjqboixk"}` on success, 503 on
+  drift.
+- New e2e `web/e2e/signup-real.spec.ts` (tagged @real-network, opt-in via
+  `pnpm test:e2e:real`) submits a valid throwaway-email signup against the
+  LIVE deploy and asserts 2xx + JSON success shape + the expected project
+  ref.
+- The Module 4 personalization cron at `/api/cron/personalization` now
+  pre-flights `/api/health/auth` before doing any work and audit-logs a
+  `config_drift_detected` action if the project ref ever differs from the
+  expected `ikaaxfhenfbpfjqboixk`.
+
+**Process change**: every CHECKPOINT going forward MUST include a real
+curl-against-live signup probe. The "render returned 200" + "zod rejects
+empty body returns 400" pair of probes used through Module 4 CHECKPOINT was
+demonstrably insufficient. See `docs/runbook.md` § "Verifying production
+signup works" for the canonical probe sequence.
+
 ### 2026-05-10 — Module 3.1 schema-drift incident (RESOLVED)
 
 **Symptom**: The Bcare Supabase project (`ikaaxfhenfbpfjqboixk`, alawimasa08
