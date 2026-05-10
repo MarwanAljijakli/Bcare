@@ -1,8 +1,10 @@
+import { redirect } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import type { AppLocale } from '@/i18n/routing';
 import { AuthShell } from '@/components/auth/auth-shell';
 import { SignupForm } from '@/components/auth/signup-form';
+import { isAuthBypassActive } from '@/lib/auth/bypass';
 import { CONSENT_VERSION, hashConsent } from '@/lib/auth/consent';
 import { pageMetadata } from '@/lib/seo';
 
@@ -34,6 +36,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: A
 export default async function SignupPage({ params }: { params: Promise<{ locale: AppLocale }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  // Module 2.A.1.bypass — short-circuit through the dev-login route when
+  // bypass is active. Caregivers in dev never see the signup form.
+  if (isAuthBypassActive()) {
+    redirect(`/api/auth/dev-login?next=/${locale}/dashboard`);
+  }
   const consentTextHash = await hashConsent();
 
   return (
