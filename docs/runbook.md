@@ -73,16 +73,41 @@ pnpm test:e2e:real
 Two tests, both must pass:
 
 - `POST /api/auth/signup with a throwaway email returns 201 + ok:true`
-- `GET /api/health/auth returns ok:true with the expected supabaseProject ref`
+- `GET /api/health/auth returns ok:true with the expected supabaseProject
+ref + magicLinkOk:true`
 
-### Step 4 — real-browser end-to-end (manual, CHECKPOINT-only)
+### Step 4 — magic-link URL probe (mandatory since Module 2.A.1.fix.2)
+
+```bash
+curl -sS https://bcare-ten.vercel.app/api/health/auth | python -m json.tool
+```
+
+Expected:
+
+```json
+{
+  "ok": true,
+  "supabaseProject": "ikaaxfhenfbpfjqboixk",
+  "magicLinkOk": true,
+  "timestamp": "..."
+}
+```
+
+`magicLinkOk:false` means the next-intl middleware is rewriting
+`/auth/callback` → `/<locale>/auth/callback` and magic-link emails will
+404 in the user's browser. Check `web/middleware.ts` matcher.
+
+### Step 5 — real-browser end-to-end (manual, CHECKPOINT-only)
 
 Once per CHECKPOINT, open https://bcare-ten.vercel.app/en/signup in a fresh
-incognito window, submit a real form, click the magic-link email, complete
-the 8-step onboarding wizard, and confirm the post-finalize redirect lands
-on `/en/dashboard` with a session.
+incognito window, submit a real form **using an inbox you can actually
+read**, click the magic-link email, confirm `/en/onboarding` loads (not a
+404), complete the 8-step onboarding wizard, and confirm the post-finalize
+redirect lands on `/en/dashboard` with a session.
 
-Skipping this is fine for sub-iterations; it's required at module CHECKPOINTs.
+This is the ONLY check that catches the entire signup → email → click →
+onboard chain. Curl probes alone are insufficient — the Module 2.A.1.fix.2
+incident is the proof. Required at every module CHECKPOINT.
 
 ## Database migrations
 

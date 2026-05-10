@@ -7,14 +7,29 @@
  * endpoint exercises the actual Supabase service-role path so a cheap
  * external probe can spot misroute or DB drift before users do.
  *
+ * Module 2.A.1.fix.2 added the magic-link URL assertion below: the
+ * next-intl middleware was rewriting /auth/callback → /en/auth/callback,
+ * which 404s. The /api/health/auth probe didn't catch it because we
+ * never followed the magic link. We now generate a real magic-link via
+ * the admin API and assert the embedded redirect URL has neither
+ * /en/auth/callback nor /ar/auth/callback in it. If a future config
+ * change re-introduces the bug, this probe catches it.
+ *
  * Behavior:
  *   • Calls supabase.auth.admin.listUsers({page:1, perPage:1}) — minimal
- *     read, no writes, no rate-limit risk. Returns {ok:true, supabaseProject}.
- *   • If the call fails OR the parsed project ref doesn't match the
- *     env-var URL, returns {ok:false, reason} with status 503.
+ *     read, no writes, no rate-limit risk.
+ *   • Calls supabase.auth.admin.generateLink({type:'magiclink', email:
+ *     'health-check@bluecare.app'}) — generates a fresh link for a
+ *     reserved health-check email + asserts the URL shape. The user
+ *     row is auto-created on first call but no email is ever sent
+ *     (generateLink returns the URL inline; sendmail never fires).
+ *   • Returns:
+ *     - 200 {ok:true, supabaseProject, magicLinkOk:true, ...} on success.
+ *     - 503 {ok:false, reason, ...} on misroute, DB drift, or callback
+ *       URL regression.
  *
- * The Module 4 personalization cron also pings this endpoint and writes
- * an audit_log `config_drift_detected` row when it returns ok:false.
+ * The personalization cron pings this and audit-logs a
+ * `config_drift_detected` row when it returns ok:false.
  */
 
 import { NextResponse } from 'next/server';
@@ -23,10 +38,53 @@ import { createSupabaseAdminClient } from '@/lib/supabase/server';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+const HEALTH_CHECK_EMAIL = 'health-check@bluecare.app';
+
 function projectRefFromUrl(url: string | undefined): string | null {
   if (!url) return null;
   const m = url.match(/^https:\/\/([a-z0-9]+)\.supabase\.co\/?$/i);
   return m ? m[1]! : null;
+}
+
+interface CallbackUrlAssertion {
+  ok: boolean;
+  reason?: 'locale_prefix_present' | 'no_action_link' | 'generate_failed' | 'wrong_callback_path';
+  actionLink?: string;
+}
+
+/**
+ * Assert that a freshly-generated magic-link's action URL points at
+ * /auth/callback (no locale prefix). Catches regressions of Module
+ * 2.A.1.fix.2 in production before a real user clicks a broken link.
+ */
+async function assertMagicLinkUrl(): Promise<CallbackUrlAssertion> {
+  try {
+    const supabase = createSupabaseAdminClient();
+    // generateLink with type='magiclink' returns the action_link inline
+    // and DOES NOT send the email — perfect for a health probe.
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://bcare-ten.vercel.app';
+    const expectedRedirect = `${baseUrl}/auth/callback?next=%2Fen%2Fonboarding`;
+    const res = await supabase.auth.admin.generateLink({
+      type: 'magiclink',
+      email: HEALTH_CHECK_EMAIL,
+      options: { redirectTo: `${baseUrl}/auth/callback?next=/en/onboarding` },
+    });
+    if (res.error) return { ok: false, reason: 'generate_failed' };
+    const actionLink = res.data.properties?.action_link;
+    if (!actionLink) return { ok: false, reason: 'no_action_link' };
+    // The exact failure mode we're guarding against: middleware rewrites
+    // /auth/callback → /en/auth/callback or /ar/auth/callback in the
+    // redirect URL embedded in the action_link query string.
+    if (/\/(?:en|ar)\/auth\/callback/.test(actionLink)) {
+      return { ok: false, reason: 'locale_prefix_present', actionLink };
+    }
+    if (!actionLink.includes('/auth/callback')) {
+      return { ok: false, reason: 'wrong_callback_path', actionLink };
+    }
+    return { ok: true, actionLink: expectedRedirect };
+  } catch {
+    return { ok: false, reason: 'generate_failed' };
+  }
 }
 
 export async function GET() {
@@ -49,11 +107,26 @@ export async function GET() {
         { status: 503 },
       );
     }
+
+    const magicLink = await assertMagicLinkUrl();
+    if (!magicLink.ok) {
+      return NextResponse.json(
+        {
+          ok: false,
+          reason: 'magic_link_url_check_failed',
+          magicLinkReason: magicLink.reason,
+          supabaseProject: expectedRef,
+          // Deliberately do NOT echo the actual action_link in failure mode
+          // either — it grants account access for the health-check inbox.
+        },
+        { status: 503 },
+      );
+    }
+
     return NextResponse.json({
       ok: true,
       supabaseProject: expectedRef,
-      // We deliberately do NOT report user counts — that's analytics on
-      // child-impacting auth and is none of the probe's business.
+      magicLinkOk: true,
       timestamp: new Date().toISOString(),
     });
   } catch (e) {

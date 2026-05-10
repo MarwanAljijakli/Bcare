@@ -151,6 +151,55 @@ mirror.
 
 ## Resolved (last 14 days)
 
+### 2026-05-10 — Module 2.A.1.fix.2: magic-link emails 404'd at /en/auth/callback (RESOLVED)
+
+**Symptom**: Real user signed up, received the magic-link email, clicked
+it, browser landed on `https://bcare-ten.vercel.app/en/auth/callback?code=
+...&next=%2Fen%2Fonboarding` — 404 "This page could not be found."
+
+**Root cause**: The `/auth/callback` route lives at `web/app/auth/callback/
+route.ts` (NOT inside the `[locale]` segment) — Supabase magic-link emails
+carry an absolute redirect URL with no locale, and the route handler is
+locale-agnostic. The next-intl middleware in `web/middleware.ts` had a
+matcher `'/((?!api|_next|_vercel|.*\\..*).*)'` that excluded `/api`,
+`/_next`, `/_vercel`, and dot-files — but **NOT `/auth`**. So an incoming
+`GET /auth/callback?...` was matched by the middleware, which (with
+`localePrefix: 'always'`) rewrote it to `/en/auth/callback?...`. There's
+no `[locale]/auth/callback` route — Next.js returned 404.
+
+The signup route handler had been building the redirect URL correctly all
+along (`${baseUrl}/auth/callback?next=/${locale}/onboarding` — locale-free
+path, locale in `next` query). Same for the login route. The bug was the
+middleware rewriting the user's INCOMING click, not the OUTGOING email URL.
+
+**Why earlier probes didn't catch it**: `/api/health/auth` and
+`signup-real.spec.ts` both stopped at "the signup endpoint returns 200" and
+"a magic-link email is queued." Neither followed the email URL. The
+Module 2.A.1.fix verification chain ended one step too soon.
+
+**Fix**:
+
+1. `web/middleware.ts`: matcher updated to `'/((?!api|_next|_vercel|auth|
+.*\\..*).*)'` — adds `auth` to the exclusion list. Locale-agnostic
+   routes under `/auth/*` now resolve directly without intl rewriting.
+2. `/api/health/auth` extended to call `supabase.auth.admin.generateLink({
+type:'magiclink', ...})` against a reserved health-check email and
+   assert the action_link does NOT contain `/(en|ar)/auth/callback` and
+   DOES contain `/auth/callback`. Returns `magicLinkOk:true` on success;
+   503 with `magicLinkReason` on regression. The personalization cron's
+   drift detector now catches this regression automatically.
+3. `signup-real.spec.ts` asserts `magicLinkOk:true` in the health probe
+   response — fails loudly if a future config change brings the bug back.
+4. `docs/runbook.md` § "Verifying production signup works" gains a new
+   Step 4 (magic-link URL probe) and an explicit Step 5 (real-browser
+   click required at every CHECKPOINT). Curl-only verification is now
+   formally insufficient.
+
+**Process change**: every CHECKPOINT must now include a real-human magic-
+link click before declaring done. The user clicks the link in their
+inbox, lands on `/en/onboarding`, and confirms in chat. CHECKPOINT proceeds
+only after that handshake.
+
 ### 2026-05-10 — Module 2.A.1.fix: production signup returned "Database error saving new user" (RESOLVED)
 
 **Symptom**: Real users hitting https://bcare-ten.vercel.app/en/signup with a
