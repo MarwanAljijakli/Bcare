@@ -84,6 +84,51 @@ vercel env add NAME preview "" --value V --yes      ✓ adds to all preview bran
 **Next step**: Module 2.B Iteration 3 or Module 9 — record a VoiceOver pass on `/onboarding/welcome` through `/onboarding/review`, then NVDA on the same flow + `/settings/privacy` consent revocation + `/settings/account` deletion.
 **Owner**: Module 9 (a11y audit).
 
+### Module 3 — operator must run ARASAAC seed before /board renders symbol images
+
+**Discovered**: Module 3 build.
+**Symptom**: `/board` renders the layout, sentence strip, speak button, category rail, and favorites bar correctly, but the symbol grid is empty until `db/scripts/seed-arasaac.ts` is run against the live Supabase project. The migration `db/migrations/0002_storage_buckets.sql` creates the `symbols-public` + `symbols-private` storage buckets; the seed script then downloads ~40 ARASAAC pictograms (CC BY-NC-SA, public CDN), uploads them to `symbols-public`, and writes the corresponding `public.symbols` rows. Without that step, `board.bootstrap` returns `symbols: []`.
+**Why deferred**: The seed script needs network egress to `api.arasaac.org` and the `SUPABASE_SERVICE_ROLE_KEY` — both are operator-side. Running it from CI requires an outbound allow-list + a CI-only env-var which is a Module 9 piece.
+**Workaround**: Operator paste of `db/migrations/0002_storage_buckets.sql` in the Supabase SQL editor, then `pnpm tsx db/scripts/seed-arasaac.ts` from the workstation with `.env.local` populated. Idempotent — re-running is safe.
+**Next step**: Module 9 hardening — promote the operator-paste workflow to `drizzle-kit migrate`, and add a one-shot CI job that runs the seed against the live project on first deploy of the seed dataset.
+**Owner**: Module 3 (operator) → Module 9 (automation).
+
+### Module 3 — full ~2000-symbol ARASAAC corpus + categorization deferred
+
+**Discovered**: Module 3 build.
+**Symptom**: The `db/seed/arasaac-core.json` dataset committed in Iteration 2 covers ~40 high-priority bilingual symbols across 7 categories — enough for the wizard's "starter" vocabulary level to render with full board interaction. The master prompt's full ~2000-symbol corpus + category coverage (food, feelings, people, actions, places, numbers, colors, clothing, body, time, common phrases) is not yet in the seed.
+**Why deferred**: Sourcing accurate bilingual labels for 2000 symbols is a content task, not an engineering task. The seed script supports any rows the JSON gives it, so growing the dataset is purely a data effort. Module 4 personalization fans the existing 40 across the four vocabulary levels via category mapping, so the gap doesn't block progression.
+**Workaround**: Caregivers can upload custom symbols via the Module 6 dashboard (when it ships) and add their own labels for any concept the seed doesn't cover.
+**Next step**: Module 9 — engage a translator + an AAC consultant to audit a 1000-symbol bilingual content pass against the 11 categories the master prompt names. Persist as JSON in `db/seed/arasaac-{starter,expanding,conversational,advanced}.json` and rerun the seed script.
+**Owner**: Module 9 (content + engineering).
+
+### Module 3 — MediaPipe webcam-gesture mode deferred behind a feature flag
+
+**Discovered**: Module 3 scope review.
+**Symptom**: The master prompt called for opt-in webcam-gesture mode using MediaPipe Hands (pinch-select, swipe-navigate, on-device). This is not yet wired — the `Hold-to-speak` (browser SpeechRecognition) modality ships as the second input modality alongside tap, with gesture deferred.
+**Why deferred**: MediaPipe Hands is ~6 MB of WASM + model weights; we want to load it from the official CDN behind a per-child opt-in toggle so caregivers who don't enable it don't pay the bundle cost. The toggle UX is small but the right home for it is the Module 6 dashboard (sensory profile editor), not a pre-wizard setup. Time-boxed per the master prompt — explicit authorization to ship behind a feature flag.
+**Workaround**: Tap modality + browser SpeechRecognition cover the two most-used input paths; gesture is a quality-of-life feature for non-verbal children with reduced touch dexterity. Document on /accessibility once it lands.
+**Next step**: Module 4/6 — add `child.gestureModeEnabled` to the sensory profile, lazy-load `@mediapipe/hands` from `https://cdn.jsdelivr.net/npm/@mediapipe/hands/...` only when the toggle is on, and wire pinch + swipe to the same select / nav handlers the tap modality uses.
+**Owner**: Module 4 / Module 6.
+
+### Module 3 — service-worker offline cache deferred behind a feature flag
+
+**Discovered**: Module 3 build.
+**Symptom**: The board renders fine when online but does not yet survive a network drop — there is no service worker caching the symbol image bytes + UI shell, and no IndexedDB queue for input/output events that fail while offline.
+**Why deferred**: Per the master prompt's explicit "time-box service-worker offline tests; if flaky, ship the SW behind a one-line feature flag and document in known-issues" instruction. The feature is genuinely valuable but its testing surface (intermittent network, race conditions on the queue, cache invalidation when the symbol set updates) is large enough to threaten the Module 3 CHECKPOINT.
+**Workaround**: The board functions correctly online; recordInput/recordOutput tRPC mutations retry via react-query default behaviour on transient failures.
+**Next step**: Module 9 hardening — register a Workbox-backed SW that pre-caches the symbol image set (the bootstrap response gives us all the public storage paths up front), queues failed mutations via Background Sync, and replays them on `online`. Gate behind `?sw=on` until the test matrix is clean.
+**Owner**: Module 9.
+
+### Module 3 — IndexedDB TTS audio cache deferred
+
+**Discovered**: Module 3 build.
+**Symptom**: Repeated phrases ("more please", "I want water") regenerate browser-TTS audio every time. The master prompt called for caching the synthesized audio in IndexedDB keyed by `(text, voice, lang)` so subsequent reads are instant.
+**Why deferred**: The browser SpeechSynthesis API doesn't expose the synthesized audio buffer — there's no public hook to capture the bytes mid-render. Capturing it requires routing through `MediaRecorder` on a hidden `AudioContext` graph, which (a) requires a user gesture per recording session, (b) is browser-inconsistent, and (c) won't survive the Module 9 swap to ElevenLabs/Azure provider voices anyway.
+**Workaround**: The sentence-strip tokens are themselves cached client-side as React state; subsequent speaks of the same token are sub-100ms because SpeechSynthesis itself is fast for short utterances.
+**Next step**: Module 9 — when ElevenLabs/Azure providers ship behind the feature flag, those return raw audio buffers we can hash + cache in IndexedDB. The browser-native fallback path stays uncached.
+**Owner**: Module 9.
+
 ## Resolved (last 14 days)
 
 _None yet._

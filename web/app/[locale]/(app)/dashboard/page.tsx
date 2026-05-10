@@ -122,12 +122,10 @@ export default async function DashboardPage({
           <ul className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
             <CtaCard
               href="/board"
-              disabled
               icon={<Grid3x3 aria-hidden="true" className="h-6 w-6" />}
               title={t('ctas.board.title')}
               body={t('ctas.board.body')}
               cta={t('ctas.board.cta')}
-              comingSoonLabel={t('ctas.comingSoon')}
             />
             <CtaCard
               href="/settings/privacy"

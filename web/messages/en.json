@@ -479,6 +479,10 @@
         "title": "Known issues",
         "body": "None as of this revision. We add named issues here as we discover them and remove them as we ship fixes — silence on this page would be worse than honesty."
       },
+      "attributions": {
+        "title": "Attributions",
+        "arasaac": "Pictogram artwork on the BlueCare communication board is © ARASAAC, Government of Aragón (Spain), and is licensed under Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0). Source: arasaac.org."
+      },
       "feedback": {
         "title": "Feedback",
         "body": "If you encounter a barrier, please tell us. We treat accessibility regressions as bugs of the highest severity. Email accessibility@bluecare.app or use the contact form."
@@ -849,6 +853,45 @@
           "revoke": "Revoke"
         }
       },
+      "board": {
+        "title": "Board",
+        "subtitle": "Tap symbols, hold to speak, or use camera gestures to build a sentence and have BlueCare read it aloud.",
+        "loading": "Loading the board…",
+        "greeting": "Hi, {name}.",
+        "speak": "Speak",
+        "speaking": "Speaking…",
+        "emptySpeak": "Add symbols to begin",
+        "holdToSpeak": "Hold to speak",
+        "holdToSpeakUnavailable": "Voice input unavailable",
+        "quietModeOn": "Quiet mode",
+        "quietModeOff": "Quiet mode",
+        "favorites": "Favorites",
+        "attribution": "Symbols: ARASAAC · Creative Commons BY-NC-SA · arasaac.org",
+        "sentence": {
+          "remove": "Remove",
+          "clear": "Clear",
+          "placeholder": "Tap symbols to build a sentence."
+        },
+        "categories": {
+          "all": "All",
+          "core": "Core",
+          "food": "Food",
+          "feelings": "Feelings",
+          "people": "People",
+          "actions": "Actions",
+          "places": "Places",
+          "time": "Time"
+        },
+        "sttReasons": {
+          "no_browser_api": "Voice input isn't supported in this browser. Try Chrome, Edge, or Safari.",
+          "permission_denied": "Microphone permission was denied. Enable it in your browser settings to use voice input.",
+          "not_secure_context": "Voice input only works on secure (https) sites."
+        },
+        "error": {
+          "title": "We couldn't load the board.",
+          "body": "Please try again. If the problem continues, check your connection or contact support."
+        }
+      },
       "dashboard": {
         "title": "Dashboard",
         "subtitle": "Your child's communication board, settings, and progress live here. The full dashboard arrives with the next module — for now, the most important pieces are already one tap away.",
@@ -860,7 +903,7 @@
           "comingSoon": "Available shortly",
           "board": {
             "title": "Open the board",
-            "body": "Tap symbols, hold to speak, or use camera gestures. The full child board ships in the next update.",
+            "body": "Tap symbols to build a sentence, then have BlueCare read it aloud. Hold-to-speak and camera gestures are available where the browser supports them.",
             "cta": "Open"
           },
           "settings": {

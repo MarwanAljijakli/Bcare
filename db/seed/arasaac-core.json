@@ -1,0 +1,322 @@
+[
+  {
+    "arasaac_id": "2486",
+    "category": "core",
+    "label_en": "yes",
+    "label_ar": "نعم",
+    "phonetic_en": "yes",
+    "phonetic_ar": "naam"
+  },
+  {
+    "arasaac_id": "2485",
+    "category": "core",
+    "label_en": "no",
+    "label_ar": "لا",
+    "phonetic_en": "no",
+    "phonetic_ar": "la"
+  },
+  {
+    "arasaac_id": "2484",
+    "category": "core",
+    "label_en": "more",
+    "label_ar": "المزيد",
+    "phonetic_en": "more",
+    "phonetic_ar": "al-mazeed"
+  },
+  {
+    "arasaac_id": "6478",
+    "category": "core",
+    "label_en": "help",
+    "label_ar": "ساعدني",
+    "phonetic_en": "help",
+    "phonetic_ar": "saa-id-nee"
+  },
+  {
+    "arasaac_id": "2487",
+    "category": "core",
+    "label_en": "stop",
+    "label_ar": "توقّف",
+    "phonetic_en": "stop",
+    "phonetic_ar": "ta-waq-qaf"
+  },
+  {
+    "arasaac_id": "2483",
+    "category": "core",
+    "label_en": "please",
+    "label_ar": "من فضلك",
+    "phonetic_en": "please",
+    "phonetic_ar": "min fad-lik"
+  },
+  {
+    "arasaac_id": "2482",
+    "category": "core",
+    "label_en": "thank you",
+    "label_ar": "شكرًا",
+    "phonetic_en": "thank you",
+    "phonetic_ar": "shuk-ran"
+  },
+  {
+    "arasaac_id": "5455",
+    "category": "core",
+    "label_en": "I want",
+    "label_ar": "أريد",
+    "phonetic_en": "I want",
+    "phonetic_ar": "ureed"
+  },
+  {
+    "arasaac_id": "2547",
+    "category": "food",
+    "label_en": "eat",
+    "label_ar": "آكل",
+    "phonetic_en": "eat",
+    "phonetic_ar": "aakul"
+  },
+  {
+    "arasaac_id": "2592",
+    "category": "food",
+    "label_en": "drink",
+    "label_ar": "أشرب",
+    "phonetic_en": "drink",
+    "phonetic_ar": "ash-rab"
+  },
+  {
+    "arasaac_id": "2554",
+    "category": "food",
+    "label_en": "water",
+    "label_ar": "ماء",
+    "phonetic_en": "water",
+    "phonetic_ar": "maa"
+  },
+  {
+    "arasaac_id": "2548",
+    "category": "food",
+    "label_en": "milk",
+    "label_ar": "حليب",
+    "phonetic_en": "milk",
+    "phonetic_ar": "ha-leeb"
+  },
+  {
+    "arasaac_id": "2543",
+    "category": "food",
+    "label_en": "bread",
+    "label_ar": "خبز",
+    "phonetic_en": "bread",
+    "phonetic_ar": "khubz"
+  },
+  {
+    "arasaac_id": "2570",
+    "category": "food",
+    "label_en": "apple",
+    "label_ar": "تفاح",
+    "phonetic_en": "apple",
+    "phonetic_ar": "tuf-faah"
+  },
+  {
+    "arasaac_id": "6586",
+    "category": "feelings",
+    "label_en": "happy",
+    "label_ar": "سعيد",
+    "phonetic_en": "happy",
+    "phonetic_ar": "sa-eed"
+  },
+  {
+    "arasaac_id": "6585",
+    "category": "feelings",
+    "label_en": "sad",
+    "label_ar": "حزين",
+    "phonetic_en": "sad",
+    "phonetic_ar": "ha-zeen"
+  },
+  {
+    "arasaac_id": "6584",
+    "category": "feelings",
+    "label_en": "tired",
+    "label_ar": "متعب",
+    "phonetic_en": "tired",
+    "phonetic_ar": "mut-ab"
+  },
+  {
+    "arasaac_id": "6583",
+    "category": "feelings",
+    "label_en": "scared",
+    "label_ar": "خائف",
+    "phonetic_en": "scared",
+    "phonetic_ar": "khaa-if"
+  },
+  {
+    "arasaac_id": "6582",
+    "category": "feelings",
+    "label_en": "calm",
+    "label_ar": "هادئ",
+    "phonetic_en": "calm",
+    "phonetic_ar": "haa-di"
+  },
+  {
+    "arasaac_id": "6588",
+    "category": "feelings",
+    "label_en": "angry",
+    "label_ar": "غاضب",
+    "phonetic_en": "angry",
+    "phonetic_ar": "ghaa-dib"
+  },
+  {
+    "arasaac_id": "5417",
+    "category": "people",
+    "label_en": "mom",
+    "label_ar": "أمي",
+    "phonetic_en": "mom",
+    "phonetic_ar": "um-mee"
+  },
+  {
+    "arasaac_id": "5416",
+    "category": "people",
+    "label_en": "dad",
+    "label_ar": "أبي",
+    "phonetic_en": "dad",
+    "phonetic_ar": "abee"
+  },
+  {
+    "arasaac_id": "5418",
+    "category": "people",
+    "label_en": "brother",
+    "label_ar": "أخي",
+    "phonetic_en": "brother",
+    "phonetic_ar": "akhee"
+  },
+  {
+    "arasaac_id": "5419",
+    "category": "people",
+    "label_en": "sister",
+    "label_ar": "أختي",
+    "phonetic_en": "sister",
+    "phonetic_ar": "ukh-tee"
+  },
+  {
+    "arasaac_id": "5420",
+    "category": "people",
+    "label_en": "friend",
+    "label_ar": "صديق",
+    "phonetic_en": "friend",
+    "phonetic_ar": "sa-deeq"
+  },
+  {
+    "arasaac_id": "5421",
+    "category": "people",
+    "label_en": "teacher",
+    "label_ar": "معلم",
+    "phonetic_en": "teacher",
+    "phonetic_ar": "mu-al-lim"
+  },
+  {
+    "arasaac_id": "2606",
+    "category": "actions",
+    "label_en": "go",
+    "label_ar": "اذهب",
+    "phonetic_en": "go",
+    "phonetic_ar": "idh-hab"
+  },
+  {
+    "arasaac_id": "2607",
+    "category": "actions",
+    "label_en": "come",
+    "label_ar": "تعال",
+    "phonetic_en": "come",
+    "phonetic_ar": "ta-aal"
+  },
+  {
+    "arasaac_id": "2608",
+    "category": "actions",
+    "label_en": "play",
+    "label_ar": "ألعب",
+    "phonetic_en": "play",
+    "phonetic_ar": "al-ab"
+  },
+  {
+    "arasaac_id": "2609",
+    "category": "actions",
+    "label_en": "sleep",
+    "label_ar": "أنام",
+    "phonetic_en": "sleep",
+    "phonetic_ar": "anaam"
+  },
+  {
+    "arasaac_id": "2610",
+    "category": "actions",
+    "label_en": "look",
+    "label_ar": "أنظر",
+    "phonetic_en": "look",
+    "phonetic_ar": "an-zur"
+  },
+  {
+    "arasaac_id": "2611",
+    "category": "actions",
+    "label_en": "listen",
+    "label_ar": "أستمع",
+    "phonetic_en": "listen",
+    "phonetic_ar": "as-ta-mi"
+  },
+  {
+    "arasaac_id": "2700",
+    "category": "places",
+    "label_en": "home",
+    "label_ar": "البيت",
+    "phonetic_en": "home",
+    "phonetic_ar": "al-bayt"
+  },
+  {
+    "arasaac_id": "2701",
+    "category": "places",
+    "label_en": "school",
+    "label_ar": "المدرسة",
+    "phonetic_en": "school",
+    "phonetic_ar": "al-mad-ra-sa"
+  },
+  {
+    "arasaac_id": "2702",
+    "category": "places",
+    "label_en": "park",
+    "label_ar": "الحديقة",
+    "phonetic_en": "park",
+    "phonetic_ar": "al-ha-dee-qa"
+  },
+  {
+    "arasaac_id": "2703",
+    "category": "places",
+    "label_en": "bathroom",
+    "label_ar": "الحمام",
+    "phonetic_en": "bathroom",
+    "phonetic_ar": "al-ham-mam"
+  },
+  {
+    "arasaac_id": "2800",
+    "category": "time",
+    "label_en": "now",
+    "label_ar": "الآن",
+    "phonetic_en": "now",
+    "phonetic_ar": "al-aan"
+  },
+  {
+    "arasaac_id": "2801",
+    "category": "time",
+    "label_en": "later",
+    "label_ar": "لاحقًا",
+    "phonetic_en": "later",
+    "phonetic_ar": "laa-hi-qan"
+  },
+  {
+    "arasaac_id": "2802",
+    "category": "time",
+    "label_en": "today",
+    "label_ar": "اليوم",
+    "phonetic_en": "today",
+    "phonetic_ar": "al-yawm"
+  },
+  {
+    "arasaac_id": "2803",
+    "category": "time",
+    "label_en": "tomorrow",
+    "label_ar": "غدًا",
+    "phonetic_en": "tomorrow",
+    "phonetic_ar": "gha-dan"
+  }
+]

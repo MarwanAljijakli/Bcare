@@ -43,6 +43,7 @@ export default async function AccessibilityPage({
       sections={[
         { id: 'conformance', title: t('conformance.title'), body: conformanceBody },
         { id: 'knownIssues', title: t('knownIssues.title'), body: t('knownIssues.body') },
+        { id: 'attributions', title: t('attributions.title'), body: t('attributions.arasaac') },
         { id: 'feedback', title: t('feedback.title'), body: t('feedback.body') },
       ]}
     />
