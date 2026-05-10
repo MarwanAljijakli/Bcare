@@ -72,13 +72,29 @@ async function assertMagicLinkUrl(): Promise<CallbackUrlAssertion> {
     if (res.error) return { ok: false, reason: 'generate_failed' };
     const actionLink = res.data.properties?.action_link;
     if (!actionLink) return { ok: false, reason: 'no_action_link' };
+
+    // Supabase's generateLink returns a URL like:
+    //   https://<ref>.supabase.co/auth/v1/verify?token=...&type=magiclink
+    //     &redirect_to=https%3A%2F%2Fbcare-ten.vercel.app%2Fauth%2Fcallback...
+    // Decode the redirect_to query param so the substring checks below
+    // operate on the literal /auth/callback path rather than its
+    // percent-encoded form.
+    const decodedTarget = (() => {
+      try {
+        const u = new URL(actionLink);
+        return u.searchParams.get('redirect_to') ?? decodeURIComponent(actionLink);
+      } catch {
+        return decodeURIComponent(actionLink);
+      }
+    })();
+
     // The exact failure mode we're guarding against: middleware rewrites
     // /auth/callback → /en/auth/callback or /ar/auth/callback in the
     // redirect URL embedded in the action_link query string.
-    if (/\/(?:en|ar)\/auth\/callback/.test(actionLink)) {
+    if (/\/(?:en|ar)\/auth\/callback/.test(decodedTarget)) {
       return { ok: false, reason: 'locale_prefix_present', actionLink };
     }
-    if (!actionLink.includes('/auth/callback')) {
+    if (!decodedTarget.includes('/auth/callback')) {
       return { ok: false, reason: 'wrong_callback_path', actionLink };
     }
     return { ok: true, actionLink: expectedRedirect };
