@@ -1,18 +1,36 @@
 /**
- * Phase 6 of Module 2.A.1.fix.2 — generate a real magic-link email so
- * the user can re-verify the fix end-to-end in their actual inbox.
+ * Send a real magic-link email through the EXACT same code path real
+ * signups hit — no admin shortcuts, no implicit-flow Proxy URLs.
  *
- * Uses supabase.auth.admin.generateLink with type='magiclink'. Unlike
- * generateLink-and-inspect (used by /api/health/auth), this script
- * triggers the actual mailer because we want the user to receive the
- * email and click it.
+ * Choice (Module 2.A.1.fix.3): we route through the live `/api/auth/login`
+ * endpoint, which calls `supabase.auth.signInWithOtp({ shouldCreateUser:
+ * false })`. That uses the PKCE flow and emits the action_link with a
+ * `?code=...` query param routed through `/auth/callback`. This is what
+ * a real user gets when they submit the login form.
  *
- * Usage:
+ * Why NOT supabase.auth.admin.generateLink({type:'magiclink', ...}):
+ *   • That endpoint returns an IMPLICIT-flow URL (#access_token fragment).
+ *   • Real production traffic uses PKCE.
+ *   • Testing through generateLink hides bugs that only manifest in PKCE
+ *     (Module 2.A.1.fix.2 hid a route-handler crash because the fragment-
+ *     flow link bypassed the route entirely).
+ *   • generateLink is also restricted to admin paths and is not how
+ *     caregivers will sign back in.
+ *
+ * Usage (run from repo root):
  *   pnpm exec tsx db/scripts/send-test-magic-link.ts <email>
+ *
+ * The target email MUST already have an auth.users row (we use
+ * shouldCreateUser:false, mirroring the production /login flow). If the
+ * user doesn't exist yet, the script falls back to /api/auth/signup with
+ * a synthetic full-name + family role + boilerplate consent payload.
  */
 
 import './lib/env';
+import { createHash } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
+
+const LIVE_URL = process.env.PLAYWRIGHT_LIVE_BASE_URL ?? 'https://bcare-ten.vercel.app';
 
 async function main(): Promise<void> {
   const email = process.argv[2]?.trim();
@@ -23,70 +41,77 @@ async function main(): Promise<void> {
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const sr = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+  if (!url || !sr) {
+    console.error('Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in env.');
+    process.exit(2);
+  }
+
+  // Check whether the email already has an auth user (use admin API).
   const supabase = createClient(url, sr, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+  const list = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  if (list.error) {
+    console.error('listUsers failed:', list.error.message);
+    process.exit(1);
+  }
+  const existing = list.data.users.find(
+    (u) => (u.email ?? '').toLowerCase() === email.toLowerCase(),
+  );
 
-  const baseUrl = 'https://bcare-ten.vercel.app';
-  const redirectTo = `${baseUrl}/auth/callback?next=/en/onboarding`;
-  const sendEmail = !process.argv.includes('--no-email');
-
-  if (sendEmail) {
-    // Try the real email flow first — uses Supabase's built-in SMTP.
-    const { error } = await supabase.auth.signInWithOtp({
+  let endpoint: 'login' | 'signup';
+  let body: Record<string, unknown>;
+  if (existing) {
+    endpoint = 'login';
+    body = { method: 'magic-link', email, locale: 'en' };
+    console.info(
+      `Found existing auth user (id=${existing.id.slice(0, 8)}…). Using /api/auth/login.`,
+    );
+  } else {
+    endpoint = 'signup';
+    const textHash = createHash('sha256').update('consent-text-2026-05-09.1').digest('hex');
+    body = {
+      method: 'magic-link',
       email,
-      options: {
-        emailRedirectTo: redirectTo,
-        shouldCreateUser: true,
-        data: {
-          full_name: email.split('@')[0],
-          role: 'family',
-          locale: 'en',
-          consent: {
-            granted: true,
-            version: '2026-05-09.1',
-            text_hash: 'a'.repeat(64),
-            granted_at: new Date().toISOString(),
-          },
-        },
+      fullName: 'Real Magic-Link Probe',
+      role: 'family',
+      consent: {
+        granted: true,
+        version: '2026-05-09.1',
+        textHash,
       },
-    });
-
-    if (!error) {
-      console.info(`✓ Magic-link email sent to ${email} via Supabase SMTP.`);
-      console.info('  Click the link in the email; it should land on /en/onboarding/welcome.');
-      return;
-    }
-    if (error.status === 429 || /rate limit/i.test(error.message)) {
-      console.warn(
-        `! Supabase SMTP rate-limited (${error.message}). Falling back to admin.generateLink — paste the URL below into a browser.`,
-      );
-    } else {
-      console.error('signInWithOtp failed:', error.message);
-      process.exit(1);
-    }
+      locale: 'en',
+    };
+    console.info(
+      `No existing auth user for ${email}. Using /api/auth/signup with default profile shape.`,
+    );
   }
 
-  // Fallback: admin.generateLink returns the URL without sending an email.
-  // Caller pastes it into a browser. Same end-to-end behavior.
-  const gen = await supabase.auth.admin.generateLink({
-    type: 'magiclink',
-    email,
-    options: { redirectTo },
+  const res = await fetch(`${LIVE_URL}/api/auth/${endpoint}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
   });
-  if (gen.error) {
-    console.error('generateLink failed:', gen.error.message);
+  const text = await res.text();
+  console.info(`POST ${LIVE_URL}/api/auth/${endpoint} → ${res.status}`);
+  console.info(`Response: ${text.slice(0, 300)}`);
+
+  if (!res.ok) {
+    if (res.status === 429) {
+      console.error(
+        '\n✗ Rate limited. The /api endpoint has a per-IP limiter; wait ~60s and retry.\n' +
+          "Supabase SMTP also has a 4-emails/hour cap — wait longer if that's the cause.",
+      );
+    }
     process.exit(1);
   }
-  const actionLink = gen.data.properties?.action_link;
-  if (!actionLink) {
-    console.error('generateLink returned no action_link');
-    process.exit(1);
-  }
-  console.info(`\n✓ Magic-link generated for ${email}.`);
-  console.info('  Paste this URL into a browser (it logs you in + lands on /en/onboarding):');
-  console.info(`\n${actionLink}\n`);
-  console.info('  Single-use. Expires in 1 hour. Do not share publicly.');
+
+  console.info(`\n✓ Magic-link email sent to ${email} via the production ${endpoint} endpoint.`);
+  console.info('  Subject: "Magic Link" (or whatever your Supabase template names it).');
+  console.info('  Click the link in your inbox — it should land on /en/onboarding/welcome.');
+  console.info(
+    '  If it 404s OR shows an error boundary, capture the URL + error and surface here.',
+  );
 }
 
 main().catch((e: unknown) => {
