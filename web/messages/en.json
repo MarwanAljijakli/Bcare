@@ -935,6 +935,119 @@
             "therapistDashboard": "A multi-child caseload view for invited therapists.",
             "pdfReports": "Exportable PDF progress reports for the file."
           }
+        },
+        "v6": {
+          "title": "Dashboard",
+          "subtitle": "How {childName} is communicating today, with calm, honest numbers — no leaderboards.",
+          "subtitleFor": "How {childName} is communicating today, with calm, honest numbers — no leaderboards.",
+          "eyebrow": "Welcome",
+          "genericName": "there",
+          "greeting": "Welcome, {name}.",
+          "child": {
+            "tablistLabel": "Switch active child",
+            "ageYears": "{count} yrs"
+          },
+          "hero": {
+            "stars": {
+              "label": "Stars today",
+              "sublabel": "Capped at 5 per day."
+            },
+            "streak": {
+              "label": "Current streak",
+              "sublabel": "Longest: {longest} days"
+            },
+            "vocab": {
+              "label": "Active vocabulary",
+              "sublabel": "Symbols on the board today."
+            },
+            "taps": {
+              "label": "Taps today",
+              "sublabel": "Selections logged so far."
+            }
+          },
+          "today": {
+            "eyebrow": "Today",
+            "heading": "Today at a glance",
+            "description": "Most recent activity across input modalities, success rate, and sentence length.",
+            "empty": "No activity yet. Once {childName} taps a few symbols, this panel fills in automatically.",
+            "successRate": "Success rate",
+            "avgSentence": "Avg. sentence length",
+            "last24h": "Last 24h inputs",
+            "modality": {
+              "ariaLabel": "Input modality breakdown",
+              "empty": "No inputs in the last day.",
+              "symbol": "Symbol",
+              "speech": "Speech",
+              "gesture": "Gesture",
+              "keyboard": "Keyboard"
+            }
+          },
+          "sessions": {
+            "eyebrow": "Recent sessions",
+            "heading": "Last 10 sessions",
+            "description": "Newest first. Tap counts and success rates come straight from the on-device event log.",
+            "empty": "No sessions yet. Open the board to start one.",
+            "col": {
+              "date": "Date",
+              "duration": "Duration",
+              "inputs": "Inputs",
+              "success": "Success"
+            },
+            "units": {
+              "hour": "h",
+              "minute": "m",
+              "second": "s"
+            }
+          },
+          "topSymbols": {
+            "eyebrow": "Top symbols",
+            "heading": "Most-used (30 days)",
+            "description": "What your child reaches for most often.",
+            "empty": "Once a few sessions land, the top symbols list fills in.",
+            "taps": "{count} taps"
+          },
+          "sparkline": {
+            "eyebrow": "Vocabulary growth",
+            "heading": "30-day trend",
+            "description": "How many symbols are on the board, day by day.",
+            "altText": "Vocabulary size over the last 30 days",
+            "summary": "Min {min} · Max {max} · Today {last}",
+            "empty": "Once a few days of activity log, this chart will show the growth curve."
+          },
+          "suggestions": {
+            "eyebrow": "Suggestions",
+            "heading": "Pending review",
+            "description": "Approve or reject — the board only changes when you say so.",
+            "empty": "Nothing waiting for review. New ideas land after the nightly recompute.",
+            "approve": "Approve",
+            "reject": "Reject",
+            "pending": "Pending",
+            "source": {
+              "frequency": "From your child's tap pattern",
+              "llm": "AI suggestion"
+            }
+          },
+          "streak": {
+            "eyebrow": "Streak",
+            "heading": "Calm consistency",
+            "description": "Stars cap at 5 per day on purpose — we reward calm communication, not marathons.",
+            "current": "{count} day streak",
+            "longest": "Longest streak: {count} days"
+          },
+          "quickActions": {
+            "heading": "Quick actions",
+            "board": "Open the board",
+            "personalization": "Review suggestions",
+            "themes": "Browse themes",
+            "settings": "Manage settings"
+          },
+          "empty": {
+            "newCaregiver": {
+              "title": "Set up your child's board",
+              "body": "Add a child profile and pick a starting vocabulary level. The dashboard fills in once the first session lands.",
+              "cta": "Start onboarding"
+            }
+          }
         }
       },
       "themes": {
