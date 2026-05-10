@@ -35,6 +35,30 @@
   window.
 - Document in `docs/security-incidents/{date}.md`.
 
+## Database migrations
+
+**Canonical path** (since Module 3.1, 2026-05-10): every migration is a `.sql`
+file under `db/migrations/` (or `db/rls/policies.sql`), applied via the
+idempotent runner:
+
+```bash
+pnpm exec tsx db/scripts/apply-migrations.ts            # apply all migrations
+pnpm exec tsx db/scripts/apply-migrations.ts --dry-run  # preview only
+pnpm exec tsx db/scripts/verify-schema.ts               # post-apply sanity check
+pnpm exec tsx db/scripts/verify-end-to-end.ts           # full data-path test
+```
+
+Requires `SUPABASE_ACCESS_TOKEN` in `web/.env.local` (a personal access
+token from <https://supabase.com/dashboard/account/tokens>; never commit).
+
+**Do not paste SQL into the Supabase SQL editor for migrations.** The
+editor is fine for ad-hoc reads / one-off inspection, but every change
+that needs to land in version control must be a file under
+`db/migrations/` so the runner can replay it on every environment.
+
+The earlier "operator-paste" workflow caused the Module 3.1 schema-drift
+incident — it was abandoned at that module's CHECKPOINT.
+
 ## Backups
 
 - Supabase nightly backups + PITR.

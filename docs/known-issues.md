@@ -129,6 +129,63 @@ vercel env add NAME preview "" --value V --yes      ✓ adds to all preview bran
 **Next step**: Module 9 — when ElevenLabs/Azure providers ship behind the feature flag, those return raw audio buffers we can hash + cache in IndexedDB. The browser-native fallback path stays uncached.
 **Owner**: Module 9.
 
+### Module 9 — public.users has no FK to auth.users; deletes don't cascade
+
+**Discovered**: Module 3.1 end-to-end verification.
+**Symptom**: `db/scripts/verify-end-to-end.ts` revealed that calling
+`supabase.auth.admin.deleteUser(id)` removes the `auth.users` row but leaves
+the corresponding `public.users` row + every downstream child / profile /
+consent_records row. Our schema has only an INSERT-time mirror trigger
+(`handle_new_user`), no DELETE-time linkage.
+**Why deferred**: not load-bearing today — the GDPR `account.deleteAll`
+mutation soft-deletes via `users.deleted_at` and a Module 9 cron purges
+30 days later, doing the cascade explicitly. The admin-delete path is only
+exercised by the e2e test today.
+**Workaround**: `db/scripts/cleanup-e2e.ts` (and the verify script's
+teardown) deletes dependents in FK-aware order before the auth row.
+**Next step**: Module 9 — add `references auth.users(id) on delete cascade`
+to `public.users.id` so admin-delete cascades naturally; or pair the
+`handle_new_user` trigger with `handle_deleted_user` that wipes the
+mirror.
+**Owner**: Module 9.
+
 ## Resolved (last 14 days)
 
-_None yet._
+### 2026-05-10 — Module 3.1 schema-drift incident (RESOLVED)
+
+**Symptom**: The Bcare Supabase project (`ikaaxfhenfbpfjqboixk`, alawimasa08
+org, Sydney region) had ~28 leftover tables from an unrelated prior
+experiment of the project owner's (real-estate / financial-modeling SaaS).
+A previous attempt to paste BlueCare's SQL appeared to succeed but actually
+no-op'd because of a `profiles` table-name collision; the rest rolled back
+inside a transaction. Result: every `public.*` write from BlueCare's tRPC
+procedures and onboarding finalize would have failed silently against
+this project for the entirety of Modules 2.A → 3.
+
+**Resolution** (project owner + agent, 2026-05-10):
+
+1. Owner wiped public schema and applied the BlueCare schema fresh via the
+   Supabase CLI (`supabase db push` against migrations they staged).
+2. Agent built an idempotent migration runner
+   (`db/scripts/apply-migrations.ts`) using the Management API + a
+   personal access token, plus a permanent verifier
+   (`db/scripts/verify-schema.ts`) and an end-to-end data-path test
+   (`db/scripts/verify-end-to-end.ts`).
+3. Re-created the `symbols-public` and `symbols-private` storage buckets
+   via the admin Storage API.
+4. Seeded 40 ARASAAC pictograms (CC BY-NC-SA) into `symbols-public` and
+   the `symbols` table; verified all 40 image URLs return 200 image/png
+   from the public bucket.
+5. End-to-end verification: created a service-role test caregiver,
+   inserted profile + child + consent_records, confirmed the
+   `auth.users → public.users` mirror trigger fires, confirmed
+   `board.bootstrap` returns 40 symbols, then cleaned up cleanly.
+6. Backup of any pre-existing experiment data: 0 leftover tables found
+   on the live project at the moment the agent started Phase 1 — the
+   owner's reset was already complete by that point. The
+   `bcare-old-experiment-backup/` directory is empty (gitignored).
+7. Updated `docs/runbook.md` to make the migration runner the canonical
+   path; deprecated the operator-paste workflow.
+8. Pre-existing schema gap (no FK from `public.users` to `auth.users`)
+   surfaced during e2e teardown — logged separately above as a Module 9
+   item, not a regression from the remediation.
