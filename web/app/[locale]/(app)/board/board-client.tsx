@@ -14,12 +14,18 @@ import { SymbolGrid } from '@/components/board/symbol-grid';
 import { symbolLabel } from '@/components/board/types';
 import { StarCelebration } from '@/components/gamification/star-celebration';
 import { trpc } from '@/lib/trpc/client';
+// Quality Fix Phase 2: voice goes through /api/voice/* (ElevenLabs +
+// Whisper). Browser SpeechSynthesis / SpeechRecognition are deleted.
+// `browserSupportsMic()` is a feature-detect for the hold-to-speak
+// button; the actual transcribe call hits Whisper server-side.
 import {
-  getSttAvailability,
-  matchTranscriptToSymbol,
-  recognizeOnce,
-} from '@/lib/voice/browser-stt';
-import { speak as ttsSpeak, cancel as ttsCancel } from '@/lib/voice/browser-tts';
+  browserSupportsMic,
+  cancelSpeechClient,
+  speakClient,
+  transcribeClient,
+  VoiceServiceError,
+} from '@/lib/voice/client';
+import { matchTranscriptToSymbol } from '@/lib/voice/match';
 
 /**
  * Board client. Holds:
@@ -74,10 +80,12 @@ export function BoardClient({ locale }: { locale: 'en' | 'ar' }) {
   const successfulCountRef = useRef(0);
   const lastTapAtRef = useRef<number>(0);
 
-  const stt = useMemo(() => getSttAvailability(), []);
+  // Browser feature-detect for the mic. The Whisper call itself only
+  // fires once the user actually holds the button.
+  const stt = useMemo(() => browserSupportsMic(), []);
   useEffect(() => {
     if (!stt.available) {
-      setSttUnavailableReason(stt.reason);
+      setSttUnavailableReason(stt.reason ?? null);
     }
   }, [stt]);
 
@@ -188,9 +196,11 @@ export function BoardClient({ locale }: { locale: 'en' | 'ar' }) {
     }, tickMs);
     const startedAt = Date.now();
     try {
-      await ttsSpeak({
+      if (!child) return;
+      await speakClient({
         text,
         lang: locale,
+        childId: child.id,
         volume: quietMode ? 0.6 : 1,
       });
       outputCountRef.current += 1;
@@ -223,7 +233,7 @@ export function BoardClient({ locale }: { locale: 'en' | 'ar' }) {
     if (!stt.available || !child) return;
     setListening(true);
     try {
-      const result = await recognizeOnce({ lang: locale, timeoutSec: 6 });
+      const result = await transcribeClient({ lang: locale, childId: child.id, maxSec: 5 });
       const matchPool = symbols.map((s) => ({
         id: s.id,
         label: locale === 'ar' ? s.label_ar : s.label_en,
@@ -240,27 +250,38 @@ export function BoardClient({ locale }: { locale: 'en' | 'ar' }) {
           await ensureSession();
           const sid = sessionIdRef.current;
           if (sid) {
+            // Whisper returns a confidence-equivalent score implicitly
+            // via `language_detected` matching the requested locale; we
+            // record 1.0 when it matched, 0.6 otherwise. Keeps the
+            // input_events.payload shape unchanged from Module 5.
+            const matchedLang = result.language_detected.startsWith(locale);
             void recordInput.mutateAsync({
               sessionId: sid,
               childId: child.id,
               modality: 'speech',
               symbolId: symbol.id,
-              payload: { confidence: result.confidence },
+              payload: { confidence: matchedLang ? 1 : 0.6 },
             });
           }
         }
       }
-    } catch {
-      // Permission denied / no_match / timeout — surface silently in v1;
-      // a future iteration will show a friendly toast.
+    } catch (e) {
+      // Cap-reached / voice_unavailable / mic_denied — surface silently
+      // in v1; a future iteration will show a calm toast. Module 6
+      // already has a per-child voice budget UI on /settings.
+      if (e instanceof VoiceServiceError) {
+        if (e.kind === 'cap_reached' || e.kind === 'voice_unavailable') {
+          setSttUnavailableReason(e.kind);
+        }
+      }
     } finally {
       setListening(false);
     }
   }
 
   function handleHoldStop() {
-    // Recognition stops itself when the user releases the hold button —
-    // recognizeOnce is single-shot. Nothing to do here in v1.
+    // Recording stops itself when the maxSec timer fires inside
+    // transcribeClient. The component-level release is purely visual.
   }
 
   function handleRemove(index: number) {
@@ -268,7 +289,7 @@ export function BoardClient({ locale }: { locale: 'en' | 'ar' }) {
   }
 
   function handleClear() {
-    ttsCancel();
+    cancelSpeechClient();
     setTokens([]);
     setSpeaking(false);
     setHighlightIndex(null);

@@ -18,7 +18,17 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-export type AiService = 'whisper_stt' | 'gpt_personalization' | 'elevenlabs_tts' | 'azure_tts';
+export type AiService =
+  | 'whisper_stt'
+  | 'gpt_personalization'
+  | 'elevenlabs_tts'
+  | 'azure_tts'
+  // Quality Fix Phase 0 — Claude Sonnet 4.6 sub-services. Migration
+  // 0005 extended the public.ai_service enum to match.
+  | 'claude_suggest'
+  | 'claude_audit'
+  | 'claude_complete'
+  | 'claude_other';
 
 export interface GuardInput {
   /** Owning child for this AI call. */
