@@ -20,6 +20,7 @@
     "lighthouse": "lhci autorun"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.95.1",
     "@bluecare/db": "workspace:*",
     "@bluecare/shared": "workspace:*",
     "@hookform/resolvers": "^3.9.1",
