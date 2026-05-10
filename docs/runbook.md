@@ -101,13 +101,26 @@ Expected:
 
 Once per CHECKPOINT, open https://bcare-ten.vercel.app/en/signup in a fresh
 incognito window, submit a real form **using an inbox you can actually
-read**, click the magic-link email, confirm `/en/onboarding` loads (not a
-404), complete the 8-step onboarding wizard, and confirm the post-finalize
-redirect lands on `/en/dashboard` with a session.
+read**, click the magic-link email, confirm `/en/onboarding/welcome` loads
+(not a 404, **not a "Something went wrong" error boundary**), complete the
+8-step onboarding wizard, and confirm the post-finalize redirect lands on
+`/en/dashboard` with a session.
 
-This is the ONLY check that catches the entire signup → email → click →
-onboard chain. Curl probes alone are insufficient — the Module 2.A.1.fix.2
-incident is the proof. Required at every module CHECKPOINT.
+The only acceptance test is **a real human clicking a real email link
+from the real production signup flow**. Admin-generated links and curl
+probes are necessary but not sufficient — they take a different code
+path (`admin.generateLink` returns implicit-flow `#access_token` URLs,
+not the PKCE `?code=...` URLs real users get) and demonstrably hide
+real bugs (Module 2.A.1.fix.2 + 2.A.1.fix.3 are both proof).
+
+To trigger a real email through the production code path:
+
+```bash
+pnpm exec tsx db/scripts/send-test-magic-link.ts <your-email>
+```
+
+The script POSTs against the LIVE `/api/auth/login` (or `/api/auth/signup`
+if the user doesn't exist yet) — same path the form would hit.
 
 ## Database migrations
 

@@ -151,6 +151,68 @@ mirror.
 
 ## Resolved (last 14 days)
 
+### 2026-05-10 — Module 2.A.1.fix.3: wizard crashed on /en/onboarding/welcome (RESOLVED)
+
+**Symptom**: Pasting an admin-generated magic-link in incognito landed
+the user on `https://bcare-ten.vercel.app/en/onboarding/welcome#access_token=…`
+with the page tab title set correctly ("You're in. — BlueCare") but the
+body showing the Next.js error boundary ("Something went wrong / Please
+try again"). HTTP 500.
+
+**Root cause**: `web/app/[locale]/(auth)/onboarding/[step]/page.tsx` is
+a Server Component that imported `WIZARD_STEPS` from
+`web/src/components/onboarding/wizard-shell.tsx` — a `'use client'`
+module. Next.js wraps client-module values with a server-side Proxy that
+explicitly forbids method calls. The line `WIZARD_STEPS.includes(step as
+WizardStep)` threw at runtime:
+
+```
+Error: Attempted to call includes() from the server but includes is
+on the client. It's not possible to invoke a client function from the
+server, it can only be rendered as a Component or passed to props of a
+Client Component.
+  at Proxy.includes (next-server/app-page.runtime.prod.js)
+  at S (web/.next/server/app/[locale]/(auth)/onboarding/[step]/page.js:1:28209)
+```
+
+**Why prior CHECKPOINTs missed it**:
+1. The build doesn't statically know `Array.includes` will fail on the
+   Proxy — it's a runtime check, not a type/compile-time one.
+2. All Module-2.B verification probes hit `/onboarding` (the index,
+   which redirects without ever calling the proxy method) or skipped
+   directly to `/dashboard`. None hit `/[step]` server-side with input
+   that exercised the wizard step list.
+3. Module 2.A.1.fix.2's verification used
+   `supabase.auth.admin.generateLink({type:'magiclink', ...})` which
+   returns an IMPLICIT-flow URL (`#access_token=...` fragment). The
+   server doesn't see fragments. Real signups use PKCE (`?code=...`
+   routed through `/auth/callback`), which is the path that actually
+   triggers the server component crash. The two flows took different
+   code paths and the admin-shortcut path silently bypassed the bug.
+
+**Fix**:
+1. Extracted `WIZARD_STEPS` + `type WizardStep` into a new non-client
+   module `web/src/components/onboarding/wizard-steps.ts`. The server
+   component imports from there directly.
+2. `wizard-shell.tsx` (still `'use client'`) re-exports the same symbols
+   so existing client-side imports keep working without churn.
+3. Replaced the entire `admin.generateLink` fallback in
+   `db/scripts/send-test-magic-link.ts` with a direct POST against the
+   live `/api/auth/login` (or `/api/auth/signup` if the user doesn't
+   exist) — same code path real signups use, so the test exercises the
+   PKCE flow end-to-end instead of an implicit-flow shortcut.
+4. `docs/runbook.md` § "Verifying production signup works" Step 5
+   rewritten: "the only acceptance test is a real human clicking a real
+   email link from the real production signup flow." Curl probes and
+   admin-generated links are formally insufficient.
+
+**Process change**: every CHECKPOINT must trigger the email through the
+production `/api/auth/{login,signup}` endpoint (via the test script or a
+real form submit), wait for the email to land in a real inbox, click it
+in a real browser, and land on a working `/en/onboarding/welcome` (no
+404, no error boundary, no auth bounce) before the CHECKPOINT can be
+declared done.
+
 ### 2026-05-10 — Module 2.A.1.fix.2: magic-link emails 404'd at /en/auth/callback (RESOLVED)
 
 **Symptom**: Real user signed up, received the magic-link email, clicked
