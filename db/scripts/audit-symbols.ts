@@ -32,11 +32,10 @@ import './lib/env';
 import { randomUUID } from 'node:crypto';
 import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@supabase/supabase-js';
+import { parseVisionFinding, visionAuditPrompt } from './lib/audit-prompt';
 
 const CLAUDE_MODEL = 'claude-sonnet-4-6';
 const BUCKET = 'symbols-public';
-const AUDIT_PROMPT = (label_en: string, label_ar: string): string =>
-  `You are auditing pictograms for an AAC tool used by autistic children. The symbol is labeled '${label_en}' in English and '${label_ar}' in Arabic. Look at the attached image. Reply with strict JSON: {matches: boolean, confidence: 0..1, what_image_actually_shows: string, recommended_label_en: string, recommended_label_ar: string}. If matches=false, the labels are wrong — describe what you actually see.`;
 
 interface SymbolRow {
   id: string;
@@ -46,13 +45,10 @@ interface SymbolRow {
   status: string;
 }
 
-interface AuditFinding {
-  matches: boolean;
-  confidence: number;
-  what_image_actually_shows: string;
-  recommended_label_en: string;
-  recommended_label_ar: string;
-}
+// VisionFinding type comes from ./lib/audit-prompt — shared with the
+// reseed-on-insert pipeline so both passes apply the same standard
+// (verified-by-construction guarantee).
+type AuditFinding = ReturnType<typeof parseVisionFinding> extends infer T ? NonNullable<T> : never;
 
 function buildPublicUrl(supabaseUrl: string, imagePath: string): string {
   return `${supabaseUrl.replace(/\/$/, '')}/storage/v1/object/public/${BUCKET}/${imagePath}`;
@@ -72,41 +68,8 @@ async function fetchAsBase64(url: string): Promise<{
   return { base64: buf.toString('base64'), mediaType };
 }
 
-function parseFinding(text: string): AuditFinding | null {
-  // Claude generally returns clean JSON when asked, but it sometimes
-  // wraps in ```json fences or prepends commentary. Try a few extractors.
-  const candidates: string[] = [];
-  candidates.push(text.trim());
-  const fenceMatch = text.match(/```(?:json)?\s*([\s\S]+?)```/i);
-  if (fenceMatch && fenceMatch[1]) candidates.push(fenceMatch[1].trim());
-  const braceMatch = text.match(/\{[\s\S]*\}/);
-  if (braceMatch) candidates.push(braceMatch[0]);
-
-  for (const c of candidates) {
-    try {
-      const parsed = JSON.parse(c) as Partial<AuditFinding>;
-      if (
-        typeof parsed.matches !== 'boolean' ||
-        typeof parsed.confidence !== 'number' ||
-        typeof parsed.what_image_actually_shows !== 'string' ||
-        typeof parsed.recommended_label_en !== 'string' ||
-        typeof parsed.recommended_label_ar !== 'string'
-      )
-        continue;
-      const conf = Math.max(0, Math.min(1, parsed.confidence));
-      return {
-        matches: parsed.matches,
-        confidence: conf,
-        what_image_actually_shows: parsed.what_image_actually_shows,
-        recommended_label_en: parsed.recommended_label_en,
-        recommended_label_ar: parsed.recommended_label_ar,
-      };
-    } catch {
-      /* try next */
-    }
-  }
-  return null;
-}
+// Use the shared parser from ./lib/audit-prompt.
+const parseFinding = parseVisionFinding;
 
 async function main(): Promise<void> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -190,7 +153,7 @@ async function main(): Promise<void> {
                 type: 'image',
                 source: { type: 'base64', media_type: img.mediaType, data: img.base64 },
               },
-              { type: 'text', text: AUDIT_PROMPT(sym.label_en, sym.label_ar) },
+              { type: 'text', text: visionAuditPrompt(sym.label_en, sym.label_ar) },
             ],
           },
         ],
