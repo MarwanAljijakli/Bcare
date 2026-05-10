@@ -12,7 +12,12 @@ import { SensoryStep } from '@/components/onboarding/steps/sensory-step';
 import { VocabularyLevelStep } from '@/components/onboarding/steps/vocabulary-level-step';
 import { VoiceStep } from '@/components/onboarding/steps/voice-step';
 import { WelcomeStep } from '@/components/onboarding/steps/welcome-step';
-import { WizardShell, WIZARD_STEPS, type WizardStep } from '@/components/onboarding/wizard-shell';
+import { WizardShell } from '@/components/onboarding/wizard-shell';
+// IMPORTANT: pull step constants from the non-client module. Importing
+// them through wizard-shell.tsx (a 'use client' file) turns them into a
+// server-side Proxy that throws on `.includes()`. See
+// docs/known-issues.md → Module 2.A.1.fix.3 postmortem.
+import { WIZARD_STEPS, type WizardStep } from '@/components/onboarding/wizard-steps';
 import { ensureCsrfCookie } from '@/lib/auth/csrf';
 import { pageMetadata } from '@/lib/seo';
 
