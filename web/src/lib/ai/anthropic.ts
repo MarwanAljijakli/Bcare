@@ -26,8 +26,8 @@
  */
 import 'server-only';
 import Anthropic from '@anthropic-ai/sdk';
-import type { SupabaseClient } from '@supabase/supabase-js';
 import { aiGuard, type GuardResult } from './guard';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 /** Model ID per Quality Fix directive. */
 export const CLAUDE_MODEL = 'claude-sonnet-4-6';

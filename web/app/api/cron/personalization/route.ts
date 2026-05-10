@@ -119,6 +119,31 @@ export async function GET(req: NextRequest) {
       if (r.levelAdvanced) totalAdvances++;
     }
 
+    // Quality Fix Phase 3 — Claude contextual suggestion pass. Runs
+    // AFTER the frequency pass so it has fresh progress_metrics +
+    // suggestion-cooldown data to consult. Falls through silently when
+    // ANTHROPIC_API_KEY is missing or per-child cap is reached (the
+    // Claude module returns empty arrays in those cases — never throws
+    // a user-visible error, never blocks the frequency pass).
+    let claudeChildren = 0;
+    let claudeConcepts = 0;
+    let claudeSuggestionsCreated = 0;
+    try {
+      const { claudeSuggestionsForAll } = await import('@/server/personalization/claude');
+      const claudeRun = await claudeSuggestionsForAll(supabaseAdmin as never);
+      claudeChildren = claudeRun.children;
+      for (const r of claudeRun.results) {
+        claudeConcepts += r.conceptsReturned;
+        claudeSuggestionsCreated += r.suggestionsInserted;
+      }
+      totalSuggestions += claudeSuggestionsCreated;
+    } catch (e) {
+      console.error(
+        'claude pass failed:',
+        e instanceof Error ? e.message : String(e),
+      );
+    }
+
     // Audit-log the run. actor_id null = system action.
     await (
       supabaseAdmin.from('audit_log') as never as {
@@ -140,6 +165,9 @@ export async function GET(req: NextRequest) {
         children,
         suggestionsCreated: totalSuggestions,
         levelAdvances: totalAdvances,
+        claudeChildren,
+        claudeConcepts,
+        claudeSuggestionsCreated,
         durationMs: Date.now() - startedAt,
       },
     });
@@ -149,6 +177,9 @@ export async function GET(req: NextRequest) {
       children,
       suggestionsCreated: totalSuggestions,
       levelAdvances: totalAdvances,
+      claudeChildren,
+      claudeConcepts,
+      claudeSuggestionsCreated,
       durationMs: Date.now() - startedAt,
     });
   } catch (e) {
