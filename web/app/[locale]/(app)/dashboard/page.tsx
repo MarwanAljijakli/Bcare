@@ -1,4 +1,4 @@
-import { Grid3x3, Settings, BookOpen, Sparkles, Construction } from 'lucide-react';
+import { BookOpen, Construction, Grid3x3, Settings, Sparkles, Wand2 } from 'lucide-react';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import type { AppLocale } from '@/i18n/routing';
 import { Logo } from '@/components/brand/logo';
@@ -119,13 +119,20 @@ export default async function DashboardPage({
           <h2 id="dashboard-cta-heading" className="sr-only">
             {t('ctas.heading')}
           </h2>
-          <ul className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
+          <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-4">
             <CtaCard
               href="/board"
               icon={<Grid3x3 aria-hidden="true" className="h-6 w-6" />}
               title={t('ctas.board.title')}
               body={t('ctas.board.body')}
               cta={t('ctas.board.cta')}
+            />
+            <CtaCard
+              href="/dashboard/personalization"
+              icon={<Wand2 aria-hidden="true" className="h-6 w-6" />}
+              title={t('ctas.personalization.title')}
+              body={t('ctas.personalization.body')}
+              cta={t('ctas.personalization.cta')}
             />
             <CtaCard
               href="/settings/privacy"
@@ -208,7 +215,7 @@ function CtaCard({
   disabled = false,
   comingSoonLabel,
 }: {
-  href: '/board' | '/settings/privacy' | '/help';
+  href: '/board' | '/settings/privacy' | '/help' | '/dashboard/personalization';
   icon: React.ReactNode;
   title: string;
   body: string;

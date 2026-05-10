@@ -397,7 +397,7 @@
         },
         "thirdParties": {
           "title": "Third parties",
-          "body": "We use Supabase (managed Postgres + Auth + Storage) for application data, hosted in a region we'll publish before launch. AI services (Whisper for speech recognition, GPT-4o-mini for vocabulary suggestions, ElevenLabs for English voices, Azure Neural TTS for Arabic voices) receive only the minimum data required for the call and never receive child identity. We do NOT use third-party analytics on the child board."
+          "body": "We use Supabase (managed Postgres + Auth + Storage) for application data, hosted in Sydney. The vocabulary personalization that runs nightly is purely server-side aggregation against your child's usage patterns — no external API calls, no profiling, no upstream training. The optional GPT-4o-mini upgrade for additional suggestions only runs when a caregiver explicitly toggles it on AND OPENAI_API_KEY is configured on our deployment; even then, only category keys + symbol IDs leave the server, never your child's name, voice, or session content. ElevenLabs (English voices) and Azure Neural TTS (Arabic voices) are optional Module-9 voice upgrades — never required. We do NOT use third-party analytics on the child board."
         },
         "retention": {
           "title": "How long we keep data",
@@ -906,6 +906,11 @@
             "body": "Tap symbols to build a sentence, then have BlueCare read it aloud. Hold-to-speak and camera gestures are available where the browser supports them.",
             "cta": "Open"
           },
+          "personalization": {
+            "title": "Review suggestions",
+            "body": "BlueCare proposes new symbols based on how your child uses the board. Approve or reject each one — the board only changes when you say so.",
+            "cta": "Review"
+          },
           "settings": {
             "title": "Manage settings",
             "body": "Privacy, consent, therapist invites, account export, and parental PIN — all in one place.",
@@ -928,6 +933,45 @@
             "sessionReplay": "Session replays with therapist notes attached to specific moments.",
             "therapistDashboard": "A multi-child caseload view for invited therapists.",
             "pdfReports": "Exportable PDF progress reports for the file."
+          }
+        }
+      },
+      "personalization": {
+        "title": "Personalization",
+        "subtitle": "BlueCare suggests new symbols for your child's board based on how often they communicate. Every suggestion waits for your tap before it lands on the board.",
+        "eyebrow": "Suggestions",
+        "greetingFor": "Suggestions for {name}",
+        "backToDashboard": "Back to dashboard",
+        "footnote": "Suggestions come from frequency patterns on your child's board — never from third-party tracking. The optional AI upgrade is opt-in and never paywalled.",
+        "source": {
+          "frequency": "from usage patterns",
+          "llm": "from AI assist"
+        },
+        "mode": {
+          "title": "How suggestions arrive",
+          "body": "Choose whether new vocabulary lands automatically or waits for your review. The optional AI assist is per-child and stays off until you turn it on.",
+          "review": "I review each one",
+          "auto": "Auto-add (no review)",
+          "runNow": "Recompute now",
+          "llmUnavailable": "AI assist isn't configured on this deployment."
+        },
+        "pending": {
+          "title": "Pending review ({n})",
+          "loading": "Loading suggestions…",
+          "emptyTitle": "No pending suggestions yet",
+          "emptyBody": "BlueCare runs personalization overnight. As your child uses the board, new tile suggestions will appear here for your review.",
+          "itemTitle": "Add a tile {source}",
+          "score": "Confidence: {score}%",
+          "approve": "Approve",
+          "reject": "Reject",
+          "cancelReject": "Cancel",
+          "rejectReasonTitle": "Why?",
+          "reasons": {
+            "not_relevant": "Not relevant",
+            "not_yet": "Not yet",
+            "wrong_category": "Wrong category",
+            "duplicate": "Already on the board",
+            "other": "Other"
           }
         }
       },
