@@ -54,6 +54,8 @@ export async function GET(req: NextRequest) {
       ok?: boolean;
       supabaseProject?: string;
       reason?: string;
+      bypassActive?: boolean;
+      vercelEnv?: string | null;
     };
     const expectedRef = 'ikaaxfhenfbpfjqboixk';
     const driftDetected =
@@ -86,6 +88,23 @@ export async function GET(req: NextRequest) {
         },
         { status: 503 },
       );
+    }
+    // Module 2.A.1.bypass — separately surface that bypass is active
+    // in production. Doesn't abort the cron (we WANT it active during
+    // Modules 6-9), but adds a daily audit-log breadcrumb so a missed
+    // pre-launch flip is impossible to ignore.
+    if (probeBody.bypassActive === true && probeBody.vercelEnv === 'production') {
+      await (
+        supabaseAdmin.from('audit_log') as never as {
+          insert: (row: Record<string, unknown>) => Promise<unknown>;
+        }
+      ).insert({
+        actor_id: null,
+        action: 'admin_action',
+        target_type: 'auth_bypass',
+        target_id: null,
+        metadata: { kind: 'auth_bypass_active_in_production', vercelEnv: probeBody.vercelEnv },
+      });
     }
   } catch {
     // Health probe itself failed — let the recompute run anyway since

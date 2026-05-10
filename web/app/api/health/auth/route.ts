@@ -33,6 +33,7 @@
  */
 
 import { NextResponse } from 'next/server';
+import { isAuthBypassActive } from '@/lib/auth/bypass';
 import { createSupabaseAdminClient } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
@@ -143,6 +144,12 @@ export async function GET() {
       ok: true,
       supabaseProject: expectedRef,
       magicLinkOk: true,
+      // Module 2.A.1.bypass — surfaces whether this deployment is in
+      // bypass mode. The drift detector in /api/cron/personalization
+      // audit-logs `auth_bypass_active_in_production` if this stays true
+      // after the launch flag flips. Never echoes the bypass user id.
+      bypassActive: isAuthBypassActive(),
+      vercelEnv: process.env.VERCEL_ENV ?? null,
       timestamp: new Date().toISOString(),
     });
   } catch (e) {
