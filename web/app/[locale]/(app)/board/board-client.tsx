@@ -12,6 +12,7 @@ import { SentenceStrip } from '@/components/board/sentence-strip';
 import { SpeakButton } from '@/components/board/speak-button';
 import { SymbolGrid } from '@/components/board/symbol-grid';
 import { symbolLabel } from '@/components/board/types';
+import { StarCelebration } from '@/components/gamification/star-celebration';
 import { trpc } from '@/lib/trpc/client';
 import {
   getSttAvailability,
@@ -58,6 +59,13 @@ export function BoardClient({ locale }: { locale: 'en' | 'ar' }) {
   const [highlightIndex, setHighlightIndex] = useState<number | null>(null);
   const [listening, setListening] = useState(false);
   const [sttUnavailableReason, setSttUnavailableReason] = useState<string | null>(null);
+  const [celebrationKey, setCelebrationKey] = useState(0);
+
+  // Module 5 — gamification. Awards a star on TTS success (server-side
+  // enforces the 5/day cap + streak math). The component below renders
+  // the soft 200ms celebration; both reduced-motion and quiet-mode skip
+  // the animation but the star still counts.
+  const awardStar = trpc.gamification.awardOnSpeak.useMutation();
 
   const sessionIdRef = useRef<string | null>(null);
   const sessionStartRef = useRef<number>(0);
@@ -186,6 +194,14 @@ export function BoardClient({ locale }: { locale: 'en' | 'ar' }) {
         volume: quietMode ? 0.6 : 1,
       });
       outputCountRef.current += 1;
+      // Award a star — server enforces the daily cap (5) and streak math.
+      // Best-effort: a network blip shouldn't degrade the speak experience.
+      try {
+        const award = await awardStar.mutateAsync({ childId: child.id });
+        if (award.awarded) setCelebrationKey((k) => k + 1);
+      } catch {
+        /* swallow — gamification is purely additive to the board flow */
+      }
       const sid = sessionIdRef.current;
       if (sid) {
         void recordOutput.mutateAsync({
@@ -294,6 +310,9 @@ export function BoardClient({ locale }: { locale: 'en' | 'ar' }) {
 
   return (
     <div className="bg-bg flex min-h-dvh flex-col">
+      {/* Soft milestone celebration. Skips render entirely when reduced-motion
+       *  is set or quiet mode is on. */}
+      <StarCelebration triggerKey={celebrationKey} silent={quietMode} caption={t('starEarned')} />
       <header className="border-border bg-bg/90 sticky top-0 z-20 flex items-center gap-3 border-b px-4 py-3 backdrop-blur md:px-6">
         <h1 className="text-fg flex-1 text-lg font-bold tracking-tight md:text-xl">
           {t('greeting', { name: child.preferred_name || child.full_name })}

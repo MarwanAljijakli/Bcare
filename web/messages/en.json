@@ -867,6 +867,7 @@
         "quietModeOff": "Quiet mode",
         "favorites": "Favorites",
         "attribution": "Symbols: ARASAAC · Creative Commons BY-NC-SA · arasaac.org",
+        "starEarned": "Nice work!",
         "sentence": {
           "remove": "Remove",
           "clear": "Clear",
@@ -933,6 +934,50 @@
             "sessionReplay": "Session replays with therapist notes attached to specific moments.",
             "therapistDashboard": "A multi-child caseload view for invited therapists.",
             "pdfReports": "Exportable PDF progress reports for the file."
+          }
+        }
+      },
+      "themes": {
+        "title": "Themes",
+        "subtitle": "Pick a calm tile theme for your child's board. New themes unlock as your child uses BlueCare across multiple days — no time pressure, no comparisons, no leaderboards.",
+        "eyebrow": "Themes",
+        "greetingFor": "Themes for {name}",
+        "backToDashboard": "Back to dashboard",
+        "cap": "Stars are capped at 5 per day on purpose. The streak counter rewards calm, consistent communication — never marathons.",
+        "stats": {
+          "totalStars": "Stars total",
+          "streak": "Day streak",
+          "longest": "Longest streak"
+        },
+        "grid": {
+          "title": "Pick a theme",
+          "selected": "Selected",
+          "locked": "Locked",
+          "select": "Select",
+          "alreadySelected": "Already selected",
+          "unlockedAt": "Unlocked at {stars} stars",
+          "unlocksAt": "Unlocks at {stars} stars",
+          "themes": {
+            "default": {
+              "label": "Default",
+              "body": "BlueCare's calm bilingual palette — your starting point."
+            },
+            "animal": {
+              "label": "Animal",
+              "body": "Friendly mammal accents on the tile borders. Same calm contrast."
+            },
+            "nature": {
+              "label": "Nature",
+              "body": "Forest greens and sandstone neutrals. Soft, low-stimulus."
+            },
+            "space": {
+              "label": "Space",
+              "body": "Deep navy with soft star highlights. Looks great in low light."
+            },
+            "ocean": {
+              "label": "Ocean",
+              "body": "Cool teal palette with watery accents. The calmest of the set."
+            }
           }
         }
       },
