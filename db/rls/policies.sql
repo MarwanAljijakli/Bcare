@@ -327,31 +327,23 @@ create policy draft_onboarding_self_all on public.draft_onboarding
 -- Triggers
 -- =============================================================================
 
--- Mirror auth.users → public.users on signup.
-create or replace function public.handle_new_user()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
-begin
-  insert into public.users (id, email, email_confirmed)
-  values (new.id, new.email, new.email_confirmed_at is not null)
-  on conflict (id) do nothing;
-  return new;
-end;
-$$;
-
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute function public.handle_new_user();
-
--- Copy the consent attestation captured at signup
--- (auth.users.raw_user_meta_data.consent — see web/app/api/auth/signup/route.ts)
--- into a row in public.consent_records. Runs SECURITY DEFINER so RLS doesn't
--- block the insert during the unauthenticated-but-just-created signup window.
-create or replace function public.copy_consent_to_records()
+-- =============================================================================
+-- auth.users → public.users mirror + consent-records fanout, in ONE function.
+--
+-- History: this used to be two AFTER INSERT triggers — `on_auth_user_created`
+-- (handle_new_user) and `on_auth_user_consent_signup` (copy_consent_to_records).
+-- Postgres fires same-event triggers alphabetically by name, so the consent
+-- trigger ran FIRST and tried to write a consent_records row whose
+-- `granted_by_id` FK pointed at a public.users row that didn't exist yet —
+-- the FK violation rolled back the whole signup transaction with the
+-- infamous "Database error saving new user" message. We rolled the two
+-- functions into one with explicit ordering so the FK is always satisfied.
+--
+-- Wrapped in EXCEPTION blocks so any future trigger problem can't take
+-- down a real signup — the auth.users insert always commits; consent
+-- propagation is best-effort and audit-traceable via the application.
+-- =============================================================================
+create or replace function public.handle_new_auth_user()
 returns trigger
 language plpgsql
 security definer
@@ -360,41 +352,61 @@ as $$
 declare
   consent_data jsonb;
 begin
+  -- 1. Mirror to public.users FIRST — every downstream FK depends on it.
+  begin
+    insert into public.users (id, email, email_confirmed)
+    values (new.id, new.email, new.email_confirmed_at is not null)
+    on conflict (id) do nothing;
+  exception when others then
+    -- A failure here is genuinely fatal for the application (no caregiver row
+    -- means RLS will reject every subsequent request), but we still want the
+    -- auth.users row to commit so the user can re-attempt with `email-already-
+    -- registered`. Surface the error to Postgres logs.
+    raise warning 'handle_new_auth_user: public.users mirror failed for %: %', new.id, sqlerrm;
+  end;
+
+  -- 2. Best-effort consent fanout.
   consent_data := new.raw_user_meta_data->'consent';
-  if consent_data is null then
-    return new;
+  if consent_data is not null
+     and (consent_data->>'granted')::boolean is not distinct from true then
+    begin
+      insert into public.consent_records (
+        granted_by_id,
+        subject_child_id,
+        scope,
+        granted,
+        policy_version,
+        metadata
+      ) values (
+        new.id,
+        null,                              -- account-level grant; child-level grants come later
+        'data_processing',
+        true,
+        coalesce(consent_data->>'version', '0.0'),
+        jsonb_build_object(
+          'text_hash', consent_data->>'text_hash',
+          'granted_at', consent_data->>'granted_at',
+          'source', 'signup'
+        )
+      )
+      on conflict do nothing;
+    exception when others then
+      -- Consent record can be backfilled by the application; never block signup.
+      raise warning 'handle_new_auth_user: consent fanout failed for %: %', new.id, sqlerrm;
+    end;
   end if;
-  if (consent_data->>'granted')::boolean is distinct from true then
-    return new;
-  end if;
-  insert into public.consent_records (
-    granted_by_id,
-    subject_child_id,
-    scope,
-    granted,
-    policy_version,
-    metadata
-  ) values (
-    new.id,
-    null,                              -- account-level grant; child grants come later
-    'data_processing',
-    true,
-    coalesce(consent_data->>'version', '0.0'),
-    jsonb_build_object(
-      'text_hash', consent_data->>'text_hash',
-      'granted_at', consent_data->>'granted_at',
-      'source', 'signup'
-    )
-  )
-  on conflict do nothing;
+
   return new;
 end;
 $$;
 
+-- Drop the old two-trigger setup if it exists (idempotent for fresh deploys).
+drop trigger if exists on_auth_user_created on auth.users;
 drop trigger if exists on_auth_user_consent_signup on auth.users;
-create trigger on_auth_user_consent_signup
+
+create trigger on_auth_user_signup
   after insert on auth.users
-  for each row execute function public.copy_consent_to_records();
+  for each row execute function public.handle_new_auth_user();
 
 -- Bump updated_at on row update for the tables that have it.
 create or replace function public.set_updated_at()
