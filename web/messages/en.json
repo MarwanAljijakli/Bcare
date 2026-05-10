@@ -849,6 +849,45 @@
           "revoke": "Revoke"
         }
       },
+      "dashboard": {
+        "title": "Dashboard",
+        "subtitle": "Your child's communication board, settings, and progress live here. The full dashboard arrives with the next module — for now, the most important pieces are already one tap away.",
+        "eyebrow": "Welcome",
+        "genericName": "there",
+        "greeting": "Welcome, {name}.",
+        "ctas": {
+          "heading": "Quick actions",
+          "comingSoon": "Available shortly",
+          "board": {
+            "title": "Open the board",
+            "body": "Tap symbols, hold to speak, or use camera gestures. The full child board ships in the next update.",
+            "cta": "Open"
+          },
+          "settings": {
+            "title": "Manage settings",
+            "body": "Privacy, consent, therapist invites, account export, and parental PIN — all in one place.",
+            "cta": "Open settings"
+          },
+          "help": {
+            "title": "Read help",
+            "body": "Quick answers, walkthroughs, and contact paths. The help center is being assembled.",
+            "cta": "Open help"
+          }
+        },
+        "roadmap": {
+          "eyebrow": "What's next",
+          "title": "Coming up for your account",
+          "body": "We're shipping the rest of BlueCare in calm, focused passes. Here's what's next on the roadmap — every feature is free for every family.",
+          "items": {
+            "board": "Bilingual symbol board with hold-to-speak and on-device gestures.",
+            "personalization": "Frequency-based vocabulary suggestions you review before they land.",
+            "gamification": "Calm streaks and unlockable theme packs — no leaderboards.",
+            "sessionReplay": "Session replays with therapist notes attached to specific moments.",
+            "therapistDashboard": "A multi-child caseload view for invited therapists.",
+            "pdfReports": "Exportable PDF progress reports for the file."
+          }
+        }
+      },
       "pinGate": {
         "title": "Confirm with your PIN",
         "subtitle": "Enter your 6-digit parental PIN to {action}.",
