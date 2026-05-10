@@ -47,13 +47,24 @@ export async function ensureCsrfCookie(): Promise<string> {
   let token = store.get(CSRF_COOKIE)?.value;
   if (!token) {
     token = generateCsrfToken();
-    store.set(CSRF_COOKIE, token, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 30, // 30 days
-    });
+    try {
+      store.set(CSRF_COOKIE, token, {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+      });
+    } catch {
+      // Next.js 14 forbids `cookies().set()` from a Server Component
+      // context. Swallow that here: the client will mint the cookie via
+      // `/api/csrf` (Route Handler) on first tRPC request, and any
+      // mutating call before that mint will simply receive a fresh
+      // token via the response Set-Cookie. The token returned from this
+      // function is still useful as a one-shot stable string for SSR
+      // form rendering — it just won't persist as a cookie across
+      // requests when called from a server component.
+    }
   }
   return token;
 }
