@@ -6,6 +6,53 @@ in `docs/backlog.md`.
 
 ## Active
 
+### Module 9 — symbol-audit prompt too literal for AAC conventions
+
+**Discovered**: Phase 9 native-speaker acceptance test (2026-05-12).
+**Symptom**: `/admin/symbols-audit` re-ran after the Phase 1 reseed reports
+**33 image↔label mismatches** vs the **6** the earlier audit logged. Spot-
+checking the new mismatches shows the audit's Claude vision prompt is
+judging AAC convention symbols too literally:
+
+- `you / أنت` shown as a pointing finger — flagged "wrong, should be a
+  person" — but the pointing-finger IS the universal AAC symbol for
+  second-person reference across every commercial AAC product (Proloquo2Go,
+  TouchChat, CoughDrop, etc.).
+- `grow / ينمو` shown as up/down arrows — flagged "wrong, should be a
+  plant growing" — but directional arrows are the standard AAC
+  abstraction for change-of-state verbs.
+- `house / منزل` shown as a house with a chimney smoking — flagged
+  "wrong, should be a plain house" — the smoking-chimney detail is in
+  ARASAAC's canonical home pictogram.
+
+These are NOT real data-quality bugs. The audit prompt is the bug —
+it doesn't know about AAC iconography conventions and over-flags
+abstractions that AAC SLPs (speech-language pathologists) consider
+correct and intentional.
+
+**Why deferred**: Refining the audit prompt is Module 9 hardening work
+(audit-prompt-v2 with AAC convention awareness, possibly few-shot
+exemplars of "this abstraction is OK" patterns). Re-running the audit
+against 700+ symbols with a refined prompt also costs Claude API calls
+worth measuring against the monthly cap, so it deserves a scheduled
+batch run, not an ad-hoc rerun.
+
+**DO NOT** auto-relabel symbols based on the current 33 mismatches. The
+correct labels are already in the seed JSON; auto-applying the audit's
+"recommended*label*\*" suggestions would actively degrade the symbol set.
+
+**Workaround**: The audit page still ships (UI works, mismatches surface
+for review) so caregivers + admins can spot genuine egregious mismatches
+manually. The auto-relabel button is intentionally NOT exposed.
+
+**Next step**: Module 9 hardening — refine the audit Claude prompt with
+explicit AAC convention guidance ("a pointing finger represents 'you' in
+AAC", "abstract icons for state changes are acceptable"), add 5-10
+few-shot exemplars of correctly-abstract symbols, then rerun the audit
+in batch mode and verify the false-positive rate falls below 5%.
+
+**Owner**: Module 9 hardening.
+
 ### local production server returns 500 on Windows
 
 **Discovered**: Module 1 quality gate.
@@ -176,6 +223,7 @@ Client Component.
 ```
 
 **Why prior CHECKPOINTs missed it**:
+
 1. The build doesn't statically know `Array.includes` will fail on the
    Proxy — it's a runtime check, not a type/compile-time one.
 2. All Module-2.B verification probes hit `/onboarding` (the index,
@@ -191,6 +239,7 @@ Client Component.
    code paths and the admin-shortcut path silently bypassed the bug.
 
 **Fix**:
+
 1. Extracted `WIZARD_STEPS` + `type WizardStep` into a new non-client
    module `web/src/components/onboarding/wizard-steps.ts`. The server
    component imports from there directly.

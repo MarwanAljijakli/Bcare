@@ -60,8 +60,13 @@ export function VoiceTestClient({
   const [recording, setRecording] = useState(false);
   const [transcript, setTranscript] = useState<string | null>(null);
   const [transcribeMeta, setTranscribeMeta] = useState<{
-    language_detected: string;
-    duration_seconds: number;
+    language_detected?: string;
+    duration_seconds?: number;
+    avg_logprob?: number;
+    low_confidence?: boolean;
+    hallucination_detected?: boolean;
+    reason?: 'too_short' | 'hallucination_detected' | 'low_confidence';
+    detail?: string;
   } | null>(null);
   const [transcribeError, setTranscribeError] = useState<string | null>(null);
   const [totalCost, setTotalCost] = useState(0);
@@ -149,11 +154,16 @@ export function VoiceTestClient({
     setTranscribeMeta(null);
     setTranscribeError(null);
     try {
-      const res = await transcribeClient({ lang: locale, childId: childId!, maxSec: 5 });
-      setTranscript(res.transcript);
+      const res = await transcribeClient({ lang: locale, childId: childId!, maxSec: 8 });
+      setTranscript(res.transcript ?? '');
       setTranscribeMeta({
         language_detected: res.language_detected,
         duration_seconds: res.duration_seconds,
+        avg_logprob: res.avg_logprob,
+        low_confidence: res.low_confidence,
+        hallucination_detected: res.hallucination_detected,
+        reason: res.reason,
+        detail: res.detail,
       });
     } catch (e) {
       const kind = e instanceof VoiceServiceError ? e.kind : 'unknown';
@@ -203,8 +213,8 @@ export function VoiceTestClient({
         </h2>
         <p className="text-fg-muted text-xs">
           {locale === 'ar'
-            ? 'اضغط الزر وتحدّث لمدة ٥ ثوانٍ. سنرسل التسجيل إلى Whisper ونعرض النص.'
-            : 'Press the button and speak for 5 seconds. We send the recording to Whisper and show the transcript.'}
+            ? 'اضغط الزر وتحدّث لمدة ٨ ثوانٍ. سنرسل التسجيل إلى Whisper ونعرض النص.'
+            : 'Press the button and speak for 8 seconds. We send the recording to Whisper and show the transcript.'}
         </p>
         <Button type="button" disabled={!mic.available || recording} onClick={handleMic}>
           {recording ? (
@@ -221,29 +231,60 @@ export function VoiceTestClient({
                 : 'Recording…'
               : mic.available
                 ? locale === 'ar'
-                  ? 'سجّل ٥ ثوانٍ'
-                  : 'Record 5 seconds'
+                  ? 'سجّل ٨ ثوانٍ'
+                  : 'Record 8 seconds'
                 : locale === 'ar'
                   ? 'الميكروفون غير متاح'
                   : 'Mic unavailable'}
           </span>
         </Button>
-        {transcript !== null && (
-          <div className="bg-bg/40 border-border-muted rounded-xl border p-3">
-            <p className="text-fg-subtle text-xs uppercase tracking-wide">
-              {locale === 'ar' ? 'النص' : 'Transcript'}
+        {transcribeMeta?.reason === 'too_short' && (
+          <div className="rounded-xl border border-amber-300/40 bg-amber-50/40 p-3 dark:border-amber-700/40 dark:bg-amber-950/30">
+            <p className="text-xs font-semibold text-amber-800 dark:text-amber-200">
+              {locale === 'ar' ? 'التسجيل قصير جدًا' : 'Recording too short'}
             </p>
-            <p className="text-fg mt-1 text-base font-semibold" dir="auto">
-              {transcript || (locale === 'ar' ? '(لا شيء)' : '(empty)')}
-            </p>
-            {transcribeMeta && (
-              <p className="text-fg-muted mt-2 text-xs">
-                lang_detected = {transcribeMeta.language_detected} · duration ={' '}
-                {transcribeMeta.duration_seconds.toFixed(2)}s
-              </p>
-            )}
+            <p className="text-fg-muted mt-1 text-xs">{transcribeMeta.detail}</p>
           </div>
         )}
+        {transcribeMeta?.reason === 'hallucination_detected' && (
+          <div className="rounded-xl border border-amber-300/40 bg-amber-50/40 p-3 dark:border-amber-700/40 dark:bg-amber-950/30">
+            <p className="text-xs font-semibold text-amber-800 dark:text-amber-200">
+              {locale === 'ar' ? 'تعذّر التعرّف على الصوت' : 'Could not recognize audio'}
+            </p>
+            <p className="text-fg-muted mt-1 text-xs">{transcribeMeta.detail}</p>
+          </div>
+        )}
+        {transcript !== null &&
+          transcribeMeta?.reason !== 'too_short' &&
+          transcribeMeta?.reason !== 'hallucination_detected' && (
+            <div className="bg-bg/40 border-border-muted rounded-xl border p-3">
+              <p className="text-fg-subtle text-xs uppercase tracking-wide">
+                {locale === 'ar' ? 'النص' : 'Transcript'}
+              </p>
+              <p className="text-fg mt-1 text-base font-semibold" dir="auto">
+                {transcript || (locale === 'ar' ? '(لا شيء)' : '(empty)')}
+              </p>
+              {transcribeMeta && (
+                <p className="text-fg-muted mt-2 text-xs">
+                  {transcribeMeta.language_detected !== undefined && (
+                    <>lang_detected = {transcribeMeta.language_detected} · </>
+                  )}
+                  {transcribeMeta.duration_seconds !== undefined && (
+                    <>duration = {transcribeMeta.duration_seconds.toFixed(2)}s</>
+                  )}
+                  {transcribeMeta.avg_logprob !== undefined &&
+                    Number.isFinite(transcribeMeta.avg_logprob) && (
+                      <> · avg_logprob = {transcribeMeta.avg_logprob.toFixed(2)}</>
+                    )}
+                </p>
+              )}
+              {transcribeMeta?.reason === 'low_confidence' && (
+                <p className="mt-2 text-xs text-amber-700 dark:text-amber-300">
+                  {transcribeMeta.detail}
+                </p>
+              )}
+            </div>
+          )}
         {transcribeError !== null && (
           <p className="text-xs text-amber-700 dark:text-amber-300">
             {locale === 'ar' ? 'تعذّر النسخ:' : 'Transcribe failed:'} {transcribeError}

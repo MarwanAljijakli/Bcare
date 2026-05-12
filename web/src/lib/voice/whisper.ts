@@ -1,28 +1,62 @@
 /**
- * OpenAI Whisper STT (whisper-1) — Quality Fix Phase 2.
+ * OpenAI Whisper STT (whisper-1) — Quality Fix Phase 2 + Phase 9.B.
  *
  * Server-side wrapper around POST /v1/audio/transcriptions. Accepts an
  * audio Blob/Buffer captured by the browser's MediaRecorder API
  * (16kHz mono opus/webm), forwards as multipart/form-data, returns the
- * transcript text + detected language + duration.
+ * transcript text + detected language + duration + average logprob +
+ * a hallucination verdict.
  *
  * Why Whisper (per Quality Fix override):
  *   • Best-in-class Arabic STT, Saudi-dialect aware, handles short
  *     utterances reliably. Browser SpeechRecognition was Chromium-only
  *     and had poor Arabic accuracy — that path is DELETED forever.
  *
- * Cost: $0.006 / minute of audio. The 5-second hold-to-speak cap on
- * the board means each call is ≤ 0.083 minutes ≈ $0.0005.
+ * Phase 9.B anti-hallucination measures (in this module):
+ *   • Always request `verbose_json` so we get per-segment `avg_logprob`
+ *     and `no_speech_prob` and can compute a confidence score.
+ *   • Pass a `prompt` parameter biasing Whisper toward the child's
+ *     active AAC vocabulary, instead of the YouTube subtitle corpus
+ *     that biases it toward "اشتركوا في القناة"-style hallucinations.
+ *   • Hard-reject any clip shorter than 1.0s (Whisper hallucinates
+ *     wildly on sub-second clips that are mostly silence).
+ *   • Run every transcript through detectHallucination() and return
+ *     `hallucination: true` when matched.
+ *   • Surface `avg_logprob` to the caller so the route handler can
+ *     gate low-confidence transcripts (< -1.0).
+ *
+ * Cost: $0.006 / minute of audio. The default 8-second cap on the
+ * voice-test mic test means each call is ≤ 0.13 minutes ≈ $0.0008.
  *
  * Server-only — `OPENAI_API_KEY` MUST never reach the browser.
  */
 import 'server-only';
+import { detectHallucination, type HallucinationDecision } from './whisper-hallucinations';
 
 const OPENAI_API = 'https://api.openai.com/v1';
 const MODEL_ID = 'whisper-1';
 
 /** USD per second of audio. */
 export const COST_PER_SECOND_USD = 0.006 / 60;
+
+/** Reject any clip shorter than this many seconds. Whisper hallucinates
+ *  wildly on near-silent sub-second clips. */
+export const MIN_AUDIO_SECONDS = 1.0;
+
+/** Average logprob threshold below which a transcript is considered
+ *  low-confidence. Per OpenAI guidance, < -1.0 corresponds to the
+ *  decoder being uncertain across most tokens. */
+export const LOW_CONFIDENCE_LOGPROB = -1.0;
+
+/** Default biasing prompts — used when no per-child vocabulary is
+ *  supplied. These tell whisper-1 "these are the likely words" and
+ *  dramatically reduce the YouTube-subtitle bias for short Arabic
+ *  clips. The English seed is shorter because EN hallucinations are
+ *  less aggressive at this clip length. */
+export const DEFAULT_AAC_VOCAB_AR =
+  'أريد، أمي، أبي، ماء، طعام، نعم، لا، المزيد، ساعدني، توقّف، من فضلك، شكرا، أنا، أنت، تعبان، جوعان، عطشان، حمام، نوم، لعب، حديقة، مدرسة، بيت، تفاح، حليب، خبز، أحب، أكره، صديق، عائلة';
+export const DEFAULT_AAC_VOCAB_EN =
+  'I want, mom, dad, water, food, yes, no, more, help, stop, please, thank you, hungry, thirsty, tired, bathroom, sleep, play, apple, milk, friend, family';
 
 export interface TranscribeInput {
   audio: Buffer;
@@ -34,6 +68,11 @@ export interface TranscribeInput {
    *  `audio.webm`. The actual extension matters less than the MIME, but
    *  a sensible filename improves response in some edge cases. */
   filename?: string;
+  /** Comma- or space-separated vocabulary biasing prompt. Caller
+   *  composes this from the child's vocabulary_sets symbol labels; the
+   *  /api/voice/transcribe route resolves the child's labels before
+   *  calling. Falls back to DEFAULT_AAC_VOCAB_* when empty. */
+  vocabPrompt?: string;
 }
 
 export interface TranscribeResult {
@@ -44,6 +83,18 @@ export interface TranscribeResult {
   /** Total audio duration in seconds (used for cost accounting). */
   duration_seconds: number;
   cost_usd: number;
+  /** Average logprob across all returned segments. NaN when Whisper
+   *  returned no segments (truly empty audio); callers should treat
+   *  NaN as low-confidence. */
+  avg_logprob: number;
+  /** True when the audio is below the MIN_AUDIO_SECONDS floor. The
+   *  route handler should reject before charging. */
+  too_short: boolean;
+  /** Outcome of the hallucination filter. */
+  hallucination: HallucinationDecision;
+  /** True when avg_logprob < LOW_CONFIDENCE_LOGPROB. Surfaced to the
+   *  caller so the UI can warn the user instead of acting on a guess. */
+  low_confidence: boolean;
 }
 
 export function isWhisperAvailable(): boolean {
@@ -53,6 +104,27 @@ export function isWhisperAvailable(): boolean {
 export function estimateTranscribeCostUsd(durationSeconds: number): number {
   const c = Math.max(0, durationSeconds) * COST_PER_SECOND_USD;
   return Math.round(c * 1_000_000) / 1_000_000;
+}
+
+interface WhisperSegment {
+  avg_logprob?: number;
+  no_speech_prob?: number;
+}
+
+interface WhisperVerboseResponse {
+  text?: string;
+  language?: string;
+  duration?: number;
+  segments?: WhisperSegment[];
+}
+
+/** Mean of an array of numbers, ignoring undefined entries. NaN on
+ *  empty input. */
+function mean(xs: number[]): number {
+  if (xs.length === 0) return Number.NaN;
+  let sum = 0;
+  for (const x of xs) sum += x;
+  return sum / xs.length;
 }
 
 /**
@@ -74,7 +146,24 @@ export async function whisperTranscribe(input: TranscribeInput): Promise<Transcr
   fd.append('file', blob, input.filename ?? 'audio.webm');
   fd.append('model', MODEL_ID);
   fd.append('language', input.language);
-  fd.append('response_format', 'verbose_json'); // returns duration + language
+  fd.append('response_format', 'verbose_json'); // returns duration + language + per-segment logprobs
+
+  // Phase 9.B.2 — biasing prompt. Whisper documents the `prompt`
+  // parameter as a short string of likely vocabulary; the decoder
+  // re-weights toward those tokens. We pass the child's vocabulary
+  // (when available) or a curated AAC seed. The bias also helps Whisper
+  // disambiguate Saudi-dialect tokens that aren't in the standard
+  // training corpus.
+  const vocab = (input.vocabPrompt ?? '').trim();
+  const promptText =
+    vocab.length > 0
+      ? vocab
+      : input.language === 'ar'
+        ? DEFAULT_AAC_VOCAB_AR
+        : DEFAULT_AAC_VOCAB_EN;
+  // Whisper caps the prompt at 224 tokens (~ 900 chars at most); cap
+  // defensively so we never trip the upstream 400.
+  fd.append('prompt', promptText.slice(0, 800));
 
   const res = await fetch(`${OPENAI_API}/audio/transcriptions`, {
     method: 'POST',
@@ -85,17 +174,27 @@ export async function whisperTranscribe(input: TranscribeInput): Promise<Transcr
     const errBody = await res.text();
     throw new Error(`Whisper ${res.status}: ${errBody.slice(0, 240)}`);
   }
-  const body = (await res.json()) as {
-    text?: string;
-    language?: string;
-    duration?: number;
-  };
+  const body = (await res.json()) as WhisperVerboseResponse;
   const transcript = (body.text ?? '').trim();
   const duration_seconds = Number(body.duration ?? 0);
+
+  const segmentLogprobs = (body.segments ?? [])
+    .map((s) => (typeof s.avg_logprob === 'number' ? s.avg_logprob : Number.NaN))
+    .filter((n) => Number.isFinite(n));
+  const avg_logprob = mean(segmentLogprobs);
+
+  const too_short = duration_seconds < MIN_AUDIO_SECONDS;
+  const hallucination = detectHallucination(transcript);
+  const low_confidence = Number.isFinite(avg_logprob) && avg_logprob < LOW_CONFIDENCE_LOGPROB;
+
   return {
-    transcript,
+    transcript: hallucination.hallucination ? '' : transcript,
     language_detected: body.language ?? input.language,
     duration_seconds,
     cost_usd: estimateTranscribeCostUsd(duration_seconds),
+    avg_logprob,
+    too_short,
+    hallucination,
+    low_confidence,
   };
 }

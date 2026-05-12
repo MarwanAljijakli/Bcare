@@ -166,9 +166,21 @@ export interface TranscribeClientInput {
 }
 
 export interface TranscribeClientResult {
-  transcript: string;
-  language_detected: string;
-  duration_seconds: number;
+  /** Null when the server gracefully rejected the clip (too short,
+   *  hallucination match, etc). The caller should surface `reason` /
+   *  `detail` to the user instead of treating this as "the child said
+   *  nothing". */
+  transcript: string | null;
+  language_detected?: string;
+  duration_seconds?: number;
+  /** Phase 9.B fields. */
+  avg_logprob?: number;
+  low_confidence?: boolean;
+  hallucination_detected?: boolean;
+  /** Set when the server rejected the clip with a typed reason. */
+  reason?: 'too_short' | 'hallucination_detected' | 'low_confidence';
+  /** Human-readable bilingual rejection copy (already localized). */
+  detail?: string;
 }
 
 /**

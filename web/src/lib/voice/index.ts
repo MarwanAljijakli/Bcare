@@ -448,6 +448,10 @@ export interface TranscribeArgs {
   supabaseAdmin: SupabaseClient<never>;
   /** Conservative pre-charge estimate. Defaults to 0.005 USD. */
   estimatedCostUsd?: number;
+  /** Phase 9.B biasing prompt. The route handler builds this from the
+   *  child's vocabulary_sets symbol labels before calling. Pass-through
+   *  to whisperTranscribe(). */
+  vocabPrompt?: string;
 }
 
 export interface TranscribeResultExternal {
@@ -456,6 +460,13 @@ export interface TranscribeResultExternal {
   duration_seconds: number;
   cost_usd: number;
   provider: 'whisper';
+  /** Phase 9.B fields — surface to the caller so the UI can warn the
+   *  user instead of acting on a low-confidence or hallucinated guess. */
+  avg_logprob: number;
+  too_short: boolean;
+  low_confidence: boolean;
+  hallucination_detected: boolean;
+  hallucination_reason?: string;
 }
 
 export async function transcribe(
@@ -476,6 +487,7 @@ export async function transcribe(
         audio: args.audio,
         audioMime: args.audioMime,
         language: args.language,
+        vocabPrompt: args.vocabPrompt,
       });
       return {
         transcript: res.transcript,
@@ -483,6 +495,12 @@ export async function transcribe(
         duration_seconds: res.duration_seconds,
         cost_usd: res.cost_usd,
         provider: 'whisper' as const,
+        avg_logprob: res.avg_logprob,
+        too_short: res.too_short,
+        low_confidence: res.low_confidence,
+        hallucination_detected: res.hallucination.hallucination,
+        hallucination_reason:
+          res.hallucination.reason === 'none' ? undefined : res.hallucination.reason,
       };
     },
   );

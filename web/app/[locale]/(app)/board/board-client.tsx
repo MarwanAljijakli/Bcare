@@ -234,6 +234,14 @@ export function BoardClient({ locale }: { locale: 'en' | 'ar' }) {
     setListening(true);
     try {
       const result = await transcribeClient({ lang: locale, childId: child.id, maxSec: 5 });
+      // Phase 9.B — the server may return transcript=null with a typed
+      // reason (too_short / hallucination_detected). Treat those as
+      // "no input" silently; the hold-to-speak path doesn't surface a
+      // toast on the board.
+      if (!result.transcript) {
+        setListening(false);
+        return;
+      }
       const matchPool = symbols.map((s) => ({
         id: s.id,
         label: locale === 'ar' ? s.label_ar : s.label_en,
@@ -254,7 +262,7 @@ export function BoardClient({ locale }: { locale: 'en' | 'ar' }) {
             // via `language_detected` matching the requested locale; we
             // record 1.0 when it matched, 0.6 otherwise. Keeps the
             // input_events.payload shape unchanged from Module 5.
-            const matchedLang = result.language_detected.startsWith(locale);
+            const matchedLang = (result.language_detected ?? '').startsWith(locale);
             void recordInput.mutateAsync({
               sessionId: sid,
               childId: child.id,
