@@ -60,10 +60,10 @@ create index if not exists progress_reports_period_idx
   on public.progress_reports (child_id, period_type, period_end desc);
 
 -- =============================================================================
--- RLS: caregivers read their own children's reports. Therapists read
--- via the existing therapist_caregiver_grants pattern. Admins read
--- all. Inserts come from the service-role client (cron + manual
--- trigger via /api/reports/generate), never from the user.
+-- RLS: caregivers read their own children's reports. Therapists with an
+-- active therapist_grants row for the child read too. Admins read all.
+-- Inserts come from the service-role client (cron + manual trigger via
+-- the trpc generate mutation), never from the end user.
 -- =============================================================================
 alter table public.progress_reports enable row level security;
 
@@ -81,9 +81,8 @@ create policy progress_reports_read_own
     )
     or exists (
       select 1
-      from public.therapist_caregiver_grants g
-      join public.children c on c.caregiver_id = g.caregiver_id
-      where c.id = progress_reports.child_id
+      from public.therapist_grants g
+      where g.child_id = progress_reports.child_id
         and g.therapist_id = auth.uid()
         and g.revoked_at is null
     )
