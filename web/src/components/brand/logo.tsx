@@ -62,7 +62,7 @@ function Wordmark({ locale, px }: { locale: AppLocale; px: number }) {
       <span
         lang="ar"
         dir="rtl"
-        className="font-arabic text-fg"
+        className="font-arabic text-[color:currentColor]"
         style={{ fontSize: height, fontWeight: 700, lineHeight: 1, letterSpacing: 0 }}
       >
         بلوكير
@@ -72,7 +72,7 @@ function Wordmark({ locale, px }: { locale: AppLocale; px: number }) {
   return (
     <span
       lang="en"
-      className="text-fg"
+      className="text-[color:currentColor]"
       style={{
         fontSize: height,
         fontWeight: 600,

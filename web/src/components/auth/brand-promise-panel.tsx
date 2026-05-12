@@ -62,7 +62,7 @@ function PanelHeader() {
   const t = useTranslations('marketing.auth.shell');
   return (
     <div className="px-12 pt-12">
-      <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-sm font-medium backdrop-blur">
+      <div className="inline-flex items-center gap-2 rounded-full bg-white/30 px-4 py-1.5 text-sm font-semibold backdrop-blur">
         <span aria-hidden="true" className="h-2 w-2 rounded-full bg-white" />
         {t('panelEyebrow')}
       </div>
@@ -138,10 +138,19 @@ function Testimonial() {
               aria-pressed={i === index}
               onClick={() => setIndex(i)}
               className={cn(
-                'focus-visible:ring-primary-fg/70 h-1.5 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent',
-                i === index ? 'bg-primary-fg w-8' : 'bg-primary-fg/40 hover:bg-primary-fg/60 w-3',
+                'focus-visible:ring-primary-fg/70 group inline-flex h-6 min-w-[24px] items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent',
               )}
-            />
+            >
+              <span
+                aria-hidden="true"
+                className={cn(
+                  'block h-1.5 rounded-full transition-all',
+                  i === index
+                    ? 'bg-primary-fg w-8'
+                    : 'bg-primary-fg/40 group-hover:bg-primary-fg/60 w-3',
+                )}
+              />
+            </button>
           ))}
         </div>
       )}
