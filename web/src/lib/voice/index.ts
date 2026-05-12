@@ -59,13 +59,46 @@ export type VoiceProvider = CacheProvider;
 export type VoiceKey = 'charlotte' | 'sarah';
 export const DEFAULT_VOICE: VoiceKey = 'charlotte';
 
-/** Resolve the primary provider from env. Returns 'elevenlabs' by default. */
-export function primaryProvider(): VoiceProvider {
-  const raw = (process.env.VOICE_PROVIDER_PRIMARY ?? 'elevenlabs').toLowerCase();
-  return raw === 'openai' ? 'openai' : 'elevenlabs';
+/** Resolve the primary provider, per-locale.
+ *
+ * Phase 9 native-speaker acceptance (2026-05-12):
+ *   • AR → elevenlabs (Charlotte) — clearly more natural for Saudi child.
+ *   • EN → openai (nova) — preferred over ElevenLabs for English samples.
+ *
+ * Env overrides (set either to flip the locale's default; useful for ops
+ * incident response without a redeploy):
+ *   • VOICE_PROVIDER_PRIMARY_AR  → 'elevenlabs' | 'openai'
+ *   • VOICE_PROVIDER_PRIMARY_EN  → 'elevenlabs' | 'openai'
+ *   • VOICE_PROVIDER_PRIMARY     → legacy single-knob fallback when the
+ *     per-locale env is unset; preserves Phase 8.B behavior for callers
+ *     that don't pass a locale.
+ */
+function resolveProvider(raw: string | undefined, fallback: VoiceProvider): VoiceProvider {
+  const v = (raw ?? '').toLowerCase();
+  if (v === 'openai') return 'openai';
+  if (v === 'elevenlabs') return 'elevenlabs';
+  return fallback;
 }
-export function fallbackProvider(): VoiceProvider {
-  return primaryProvider() === 'elevenlabs' ? 'openai' : 'elevenlabs';
+
+export function primaryProvider(locale?: VoiceLocale): VoiceProvider {
+  if (locale === 'en') {
+    return resolveProvider(
+      process.env.VOICE_PROVIDER_PRIMARY_EN,
+      resolveProvider(process.env.VOICE_PROVIDER_PRIMARY, 'openai'),
+    );
+  }
+  if (locale === 'ar') {
+    return resolveProvider(
+      process.env.VOICE_PROVIDER_PRIMARY_AR,
+      resolveProvider(process.env.VOICE_PROVIDER_PRIMARY, 'elevenlabs'),
+    );
+  }
+  // Legacy callers without a locale hint — keep the Phase 8.B default.
+  return resolveProvider(process.env.VOICE_PROVIDER_PRIMARY, 'elevenlabs');
+}
+
+export function fallbackProvider(locale?: VoiceLocale): VoiceProvider {
+  return primaryProvider(locale) === 'elevenlabs' ? 'openai' : 'elevenlabs';
 }
 
 // =============================================================================
@@ -222,8 +255,8 @@ async function tryProvider(args: SynthesizeOneProviderArgs): Promise<SynthesizeO
 export async function speakWithFallback(input: SpeakInput): Promise<GuardResult<SpeakResult>> {
   const voice: VoiceKey = input.voice ?? DEFAULT_VOICE;
   const speed = input.speed ?? 1.0;
-  const primary = primaryProvider();
-  const secondary = fallbackProvider();
+  const primary = primaryProvider(input.locale);
+  const secondary = fallbackProvider(input.locale);
 
   const charCount = input.text.trim().length;
   const estimatedPrimary =

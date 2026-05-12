@@ -108,6 +108,10 @@ export async function GET() {
       // Phase 8.B — which provider is primary right now (per VOICE_PROVIDER_PRIMARY env)?
       primaryProvider: primaryProvider(),
       fallbackProvider: fallbackProvider(),
+      // Phase 9.A — per-locale primary (EN=openai, AR=elevenlabs after the
+      // 2026-05-12 native-speaker acceptance test).
+      primaryProviderEn: primaryProvider('en'),
+      primaryProviderAr: primaryProvider('ar'),
       lastFallbackAt,
       fallbackCountToday,
       ttsCalls30d: ttsCalls,
