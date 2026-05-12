@@ -414,7 +414,7 @@
         },
         "changes": {
           "title": "Changes",
-          "body": "We will update this page whenever the data flows or providers change, and we will email caregivers about any material change at least 30 days before it takes effect. (Development bypass mode is currently active for non-production testing; it will be removed and this disclaimer struck before launch.)"
+          "body": "We will update this page whenever the data flows or providers change, and we will email caregivers about any material change at least 30 days before it takes effect."
         }
       }
     },
@@ -449,7 +449,7 @@
         },
         "disclaimer": {
           "title": "Disclaimer",
-          "body": "BlueCare is a communication tool, not a medical device. It does not diagnose, treat, or cure any condition. We make no warranty that the service is fit for a particular clinical purpose. For clinical decisions, consult your therapist. During the development phase, an authentication bypass mode is active for engineering testing — this will be removed prior to launch, and this disclaimer will be struck."
+          "body": "BlueCare is a communication tool, not a medical device. It does not diagnose, treat, or cure any condition. We make no warranty that the service is fit for a particular clinical purpose. For clinical decisions, consult your therapist."
         },
         "law": {
           "title": "Governing law",
