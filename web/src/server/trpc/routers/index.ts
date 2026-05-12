@@ -4,6 +4,7 @@ import { adminRouter } from './admin';
 import { boardRouter } from './board';
 import { consentRouter } from './consent';
 import { gamificationRouter } from './gamification';
+import { helpRouter } from './help';
 import { invitesRouter } from './invites';
 import { onboardingRouter } from './onboarding';
 import { personalizationRouter } from './personalization';
@@ -18,6 +19,7 @@ export const appRouter = router({
   board: boardRouter,
   consent: consentRouter,
   gamification: gamificationRouter,
+  help: helpRouter,
   invites: invitesRouter,
   onboarding: onboardingRouter,
   personalization: personalizationRouter,

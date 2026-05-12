@@ -10,8 +10,6 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: A
   return pageMetadata({ locale, path: 'accessibility', title: t('title') });
 }
 
-const TESTED_KEYS = [0, 1, 2, 3, 4] as const;
-
 export default async function AccessibilityPage({
   params,
 }: {
@@ -20,15 +18,18 @@ export default async function AccessibilityPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: 'marketing.accessibility' });
+  // Pulled via t.raw so the conformance list length is data-driven —
+  // Module 8 grew it from 5 to 8 entries.
+  const tested = t.raw('conformance.tested') as string[];
 
   const conformanceBody = (
     <div>
       <p>{t('conformance.summary')}</p>
       <ul className="mt-5 space-y-2">
-        {TESTED_KEYS.map((i) => (
+        {tested.map((line, i) => (
           <li key={i} className="flex items-start gap-2">
             <CheckCircle2 aria-hidden="true" className="text-success mt-0.5 h-4 w-4 shrink-0" />
-            <span>{t(`conformance.tested.${i}`)}</span>
+            <span>{line}</span>
           </li>
         ))}
       </ul>

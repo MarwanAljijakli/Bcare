@@ -377,7 +377,7 @@
     },
     "privacy": {
       "title": "Privacy",
-      "lastUpdated": "Last updated: 9 May 2026",
+      "lastUpdated": "Last updated: 12 May 2026",
       "intro": "BlueCare is engineered to handle children's data with care. This page describes what we collect, why, where it lives, and what choices you have. It reflects how the product actually works — not generic templates.",
       "sections": {
         "whoWeAre": {
@@ -398,7 +398,7 @@
         },
         "thirdParties": {
           "title": "Third parties",
-          "body": "We use Supabase (managed Postgres + Auth + Storage) for application data, hosted in Sydney. The vocabulary personalization that runs nightly is purely server-side aggregation against your child's usage patterns — no external API calls, no profiling, no upstream training. The optional GPT-4o-mini upgrade for additional suggestions only runs when a caregiver explicitly toggles it on AND OPENAI_API_KEY is configured on our deployment; even then, only category keys + symbol IDs leave the server, never your child's name, voice, or session content. ElevenLabs (English voices) and Azure Neural TTS (Arabic voices) are optional Module-9 voice upgrades — never required. We do NOT use third-party analytics on the child board."
+          "body": "We use Supabase (managed Postgres + Auth + Storage) for application data, hosted in Sydney. Voice synthesis routes through two TTS providers: ElevenLabs Multilingual v2 (Charlotte voice) for Arabic, and OpenAI tts-1-hd (Nova voice) for English; both transparently fall back to each other on outage. Speech recognition uses OpenAI Whisper. Optional vocabulary personalization uses Anthropic Claude Sonnet ONLY when a caregiver explicitly enables it. Every cloud TTS call is metered against a per-child 0/month cost cap. Audio data sent to the speech provider is never persisted on our side; it lives in memory only for the duration of the request."
         },
         "retention": {
           "title": "How long we keep data",
@@ -413,14 +413,14 @@
           "body": "Children do not authenticate directly. A child's profile is owned by a caregiver. Caregivers attest to consent on behalf of the child for each scope. We minimize the data we collect about children, never expose it to third-party analytics, and treat it as the most sensitive class of data in the system."
         },
         "changes": {
-          "title": "Changes to this policy",
-          "body": "When we make material changes, we email account holders, raise an in-app banner, and bump the policy version stored against your consent record. Material changes never apply retroactively."
+          "title": "Changes",
+          "body": "We will update this page whenever the data flows or providers change, and we will email caregivers about any material change at least 30 days before it takes effect. (Development bypass mode is currently active for non-production testing; it will be removed and this disclaimer struck before launch.)"
         }
       }
     },
     "terms": {
       "title": "Terms of service",
-      "lastUpdated": "Last updated: 9 May 2026",
+      "lastUpdated": "Last updated: 12 May 2026",
       "intro": "These terms describe the agreement between you and BlueCare when you use the service. They are written to be readable, not aggressive.",
       "sections": {
         "service": {
@@ -449,7 +449,7 @@
         },
         "disclaimer": {
           "title": "Disclaimer",
-          "body": "BlueCare is a communication tool, not a medical device. It does not diagnose, treat, or cure any condition. We make no warranty that the service is fit for a particular clinical purpose. For clinical decisions, consult your therapist."
+          "body": "BlueCare is a communication tool, not a medical device. It does not diagnose, treat, or cure any condition. We make no warranty that the service is fit for a particular clinical purpose. For clinical decisions, consult your therapist. During the development phase, an authentication bypass mode is active for engineering testing — this will be removed prior to launch, and this disclaimer will be struck."
         },
         "law": {
           "title": "Governing law",
@@ -463,22 +463,25 @@
     },
     "accessibility": {
       "title": "Accessibility statement",
-      "lastUpdated": "Last updated: 9 May 2026",
-      "intro": "BlueCare is built for non-verbal and minimally verbal children with autism. Accessibility is not a checklist for us — it's the product. This page describes the actual conformance state of the marketing site as of the date above, with named known issues.",
+      "lastUpdated": "Last updated: 12 May 2026",
+      "intro": "BlueCare is built for non-verbal and minimally verbal children with autism. Accessibility is not a checklist for us — it is the product. This page describes the actual conformance state of every shipped surface as of the date above, with named known issues.",
       "conformance": {
-        "title": "Conformance state",
-        "summary": "The marketing site targets WCAG 2.2 AA. The child communication board (built in later modules) targets WCAG 2.2 AAA on color contrast, focus, and motion. Both are tested with axe-core in CI, with Lighthouse, and through manual screen-reader passes (NVDA on Windows, VoiceOver on macOS).",
+        "title": "Conformance state per surface",
+        "summary": "Marketing routes target WCAG 2.2 AA. The child communication board targets WCAG 2.2 AAA on color contrast, focus, and motion. Every surface is automatically tested with axe-core in CI plus Lighthouse on every PR; a manual screen-reader pass (VoiceOver macOS + NVDA Windows) is required before launch and is currently scheduled in Module 9 hardening.",
         "tested": [
-          "All public marketing routes pass axe-core with zero serious or critical violations.",
-          "Light, dark, and high-contrast theme modes meet WCAG AA contrast on every text-on-background pair (high-contrast meets AAA).",
-          "Full keyboard reachability — every interactive element is reachable, visible-on-focus, and operable.",
-          "Right-to-left layout parity — every component, icon, and animation respects writing direction.",
-          "prefers-reduced-motion is honored across the site."
+          "Marketing site (/, /signup, /login, /accessibility, /privacy, /terms, /help, /help/*) — WCAG 2.2 AA, axe-core 0 serious/critical, manual SR pass pending Module 9.",
+          "Communication board (/[locale]/board) — WCAG 2.2 AAA on color contrast, focus rings, and motion; full keyboard navigation (Tab + arrows + Space + Enter); 44×44px minimum touch targets; prefers-reduced-motion respected.",
+          "Caregiver dashboard (/[locale]/dashboard and sub-routes) — WCAG 2.2 AA, axe-core clean. Session replay and PDF reports tested for keyboard + screen-reader. Manual SR pass pending Module 9.",
+          "Settings (/[locale]/settings/*) — WCAG 2.2 AA, every form field labeled, parental-PIN entry has live aria-status updates.",
+          "Admin (/[locale]/admin and sub-routes) — WCAG 2.2 AA; j/k keyboard nav announced via aria-keyshortcuts.",
+          "Therapist surface (/[locale]/therapist) — WCAG 2.2 AA, caseload grid is keyboard-traversable.",
+          "High-contrast theme — meets WCAG AAA contrast (7:1+) on every text-on-background pair.",
+          "Right-to-left layout parity — every component, icon, and animation respects writing direction; tested on every page in /ar."
         ]
       },
       "knownIssues": {
         "title": "Known issues",
-        "body": "None as of this revision. We add named issues here as we discover them and remove them as we ship fixes — silence on this page would be worse than honesty."
+        "body": "Two named items as of this revision. (1) Manual VoiceOver + NVDA screen-reader pass on the new Module 6.1 session replay, /admin, and /therapist surfaces is scheduled for Module 9 production hardening but not yet recorded. axe-core CI passes on these surfaces, but human SR review may surface improvements. (2) Symbol audit run on 2026-05-12 flagged 33 image-label mismatches, of which the vast majority are AAC iconography conventions (pointing-finger for you, arrows for grow) that Claude vision judged too literally — a refined audit prompt landing in Module 9 should reduce real mismatches to ≤ 5. We do not auto-relabel based on the current flagged set; the underlying symbol labels are correct."
       },
       "attributions": {
         "title": "Attributions",
