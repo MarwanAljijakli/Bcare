@@ -62,8 +62,8 @@ function PanelHeader() {
   const t = useTranslations('marketing.auth.shell');
   return (
     <div className="px-12 pt-12">
-      <div className="inline-flex items-center gap-2 rounded-full bg-white/30 px-4 py-1.5 text-sm font-semibold backdrop-blur">
-        <span aria-hidden="true" className="h-2 w-2 rounded-full bg-white" />
+      <div className="text-primary inline-flex items-center gap-2 rounded-full bg-white px-4 py-1.5 text-sm font-semibold shadow-sm">
+        <span aria-hidden="true" className="bg-primary h-2 w-2 rounded-full" />
         {t('panelEyebrow')}
       </div>
       <div className="mt-10">
