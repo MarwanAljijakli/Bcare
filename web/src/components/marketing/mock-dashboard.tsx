@@ -107,7 +107,7 @@ export function MockDashboard({ className }: { className?: string }) {
             <div className="text-fg text-sm font-semibold">
               {isAr ? 'سامي · ٧ سنوات' : 'Sami · age 7'}
             </div>
-            <div className="border-border bg-bg-muted text-fg-subtle flex items-center gap-2 rounded-md border px-2 py-1 text-xs">
+            <div className="border-border bg-bg-muted text-fg-muted flex items-center gap-2 rounded-md border px-2 py-1 text-xs">
               <Search aria-hidden="true" className="h-3.5 w-3.5" />
               <span>{isAr ? 'بحث (⌘ك)' : 'Search (⌘K)'}</span>
             </div>
