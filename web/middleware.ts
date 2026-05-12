@@ -19,5 +19,11 @@ export const config = {
   //                        the `next` query param, which the route handler
   //                        consumes after exchangeCodeForSession.
   //   • Files with extensions (favicon, fonts, images, etc.).
-  matcher: ['/((?!api|_next|_vercel|auth|.*\\..*).*)'],
+  //   • /apple-icon, /icon — Next 14 dynamic-asset routes. Without
+  //     this exclusion, next-intl rewrites /apple-icon → /en/apple-icon,
+  //     which doesn't exist, and iOS gets a 404 for the home-screen
+  //     icon. The hashed URL Next injects into <head> includes a
+  //     query string but no path prefix, so excluding the bare path
+  //     is sufficient.
+  matcher: ['/((?!api|_next|_vercel|auth|apple-icon|icon|.*\\..*).*)'],
 };
