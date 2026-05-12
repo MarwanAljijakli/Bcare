@@ -87,4 +87,8 @@ public/robots.txt.generated
 .claude/
 .tmp/
 
+# Lighthouse CI artifacts (regenerated per-run)
+web/.lighthouseci/
+.lighthouseci-prod/
+
 .vercel

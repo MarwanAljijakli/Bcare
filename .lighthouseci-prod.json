@@ -1,0 +1,20 @@
+{
+  "ci": {
+    "collect": {
+      "url": [
+        "https://bcare-ten.vercel.app/en",
+        "https://bcare-ten.vercel.app/ar",
+        "https://bcare-ten.vercel.app/en/signup"
+      ],
+      "numberOfRuns": 1,
+      "settings": {
+        "preset": "desktop",
+        "onlyCategories": ["performance", "accessibility", "best-practices", "seo"]
+      }
+    },
+    "upload": {
+      "target": "filesystem",
+      "outputDir": ".lighthouseci-prod"
+    }
+  }
+}
