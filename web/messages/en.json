@@ -678,27 +678,46 @@
           "motion": {
             "label": "Motion",
             "helper": "How much animation feels okay?",
-            "options": { "full": "Full", "reduced": "Reduced", "off": "Off" }
+            "options": {
+              "full": "Full",
+              "reduced": "Reduced",
+              "off": "Off"
+            }
           },
           "audio": {
             "label": "Audio",
             "helper": "How loud should feedback sounds be?",
-            "options": { "full": "Standard", "soft": "Soft", "off": "Silent" }
+            "options": {
+              "full": "Standard",
+              "soft": "Soft",
+              "off": "Silent"
+            }
           },
           "contrast": {
             "label": "Contrast",
             "helper": "Use a higher-contrast palette?",
-            "options": { "standard": "Standard", "high": "High" }
+            "options": {
+              "standard": "Standard",
+              "high": "High"
+            }
           },
           "touch": {
             "label": "Touch targets",
             "helper": "How large should the symbol tiles be?",
-            "options": { "standard": "Standard", "large": "Large", "extra-large": "Extra large" }
+            "options": {
+              "standard": "Standard",
+              "large": "Large",
+              "extra-large": "Extra large"
+            }
           },
           "fontScale": {
             "label": "Text size",
             "helper": "Scale text in the dashboard.",
-            "options": { "1": "Default", "1.25": "Larger", "1.5": "Largest" }
+            "options": {
+              "1": "Default",
+              "1.25": "Larger",
+              "1.5": "Largest"
+            }
           }
         },
         "vocabularyLevel": {
@@ -1039,7 +1058,9 @@
             "board": "Open the board",
             "personalization": "Review suggestions",
             "themes": "Browse themes",
-            "settings": "Manage settings"
+            "settings": "Manage settings",
+            "therapists": "Share with therapist",
+            "reports": "Export PDF report"
           },
           "empty": {
             "newCaregiver": {

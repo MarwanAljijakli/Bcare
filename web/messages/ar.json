@@ -678,27 +678,46 @@
           "motion": {
             "label": "الحركة",
             "helper": "كم من الحركة يبدو مقبولًا؟",
-            "options": { "full": "كاملة", "reduced": "مُخفّضة", "off": "مُطفأة" }
+            "options": {
+              "full": "كاملة",
+              "reduced": "مُخفّضة",
+              "off": "مُطفأة"
+            }
           },
           "audio": {
             "label": "الصوت",
             "helper": "كم يجب أن يكون صوت التغذية الراجعة؟",
-            "options": { "full": "قياسي", "soft": "هادئ", "off": "صامت" }
+            "options": {
+              "full": "قياسي",
+              "soft": "هادئ",
+              "off": "صامت"
+            }
           },
           "contrast": {
             "label": "التباين",
             "helper": "هل نستخدم لوحة ألوان عالية التباين؟",
-            "options": { "standard": "قياسي", "high": "عالٍ" }
+            "options": {
+              "standard": "قياسي",
+              "high": "عالٍ"
+            }
           },
           "touch": {
             "label": "أهداف اللمس",
             "helper": "كم يجب أن يكون حجم بلاطات الرموز؟",
-            "options": { "standard": "قياسي", "large": "كبير", "extra-large": "أكبر" }
+            "options": {
+              "standard": "قياسي",
+              "large": "كبير",
+              "extra-large": "أكبر"
+            }
           },
           "fontScale": {
             "label": "حجم النص",
             "helper": "تكبير النص في لوحة التحكم.",
-            "options": { "1": "افتراضي", "1.25": "أكبر", "1.5": "الأكبر" }
+            "options": {
+              "1": "افتراضي",
+              "1.25": "أكبر",
+              "1.5": "الأكبر"
+            }
           }
         },
         "vocabularyLevel": {
@@ -1039,7 +1058,9 @@
             "board": "افتح اللوحة",
             "personalization": "راجع الاقتراحات",
             "themes": "تصفّح السمات",
-            "settings": "إدارة الإعدادات"
+            "settings": "إدارة الإعدادات",
+            "therapists": "مشاركة مع المعالج",
+            "reports": "تصدير تقرير PDF"
           },
           "empty": {
             "newCaregiver": {

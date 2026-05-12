@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { DashboardSection } from './dashboard-section';
 import type { AppLocale } from '@/i18n/routing';
@@ -12,9 +13,10 @@ import {
 /**
  * Recent sessions — a real <table> with semantic columns.
  *
- * Last 10 sessions, newest first. Today the rows are non-interactive;
- * the session-detail page lands as a separate task (see Module 6
- * "deferred surfaces" in the runbook).
+ * Module 6.1 — rows are now interactive. Clicking a row navigates to
+ * `/[locale]/dashboard/sessions/[id]` for the replay + therapist-notes
+ * surface. The whole row is wrapped in a Next `<Link>` so keyboard +
+ * screen-reader navigation work without a hidden visible link icon.
  */
 export function RecentSessionsTable({
   rows,
@@ -61,18 +63,41 @@ export function RecentSessionsTable({
             </thead>
             <tbody className="divide-border-muted divide-y">
               {rows.map((r) => (
-                <tr key={r.id} className="text-fg">
-                  <td className="px-2 py-2.5 align-middle">
-                    {formatShortDate(r.startedAt, locale)}
+                <tr key={r.id} className="text-fg hover:bg-bg-elevated/50 transition-colors">
+                  <td className="p-0 align-middle">
+                    <Link
+                      href={`/${locale}/dashboard/sessions/${r.id}`}
+                      className="block px-2 py-2.5"
+                    >
+                      {formatShortDate(r.startedAt, locale)}
+                    </Link>
                   </td>
-                  <td className="text-fg-muted px-2 py-2.5 align-middle tabular-nums">
-                    {formatDurationShort(r.durationSeconds, locale, units)}
+                  <td className="text-fg-muted p-0 align-middle tabular-nums">
+                    <Link
+                      href={`/${locale}/dashboard/sessions/${r.id}`}
+                      className="block px-2 py-2.5"
+                      tabIndex={-1}
+                    >
+                      {formatDurationShort(r.durationSeconds, locale, units)}
+                    </Link>
                   </td>
-                  <td className="px-2 py-2.5 text-end align-middle font-semibold tabular-nums">
-                    {formatInteger(r.inputCount, locale)}
+                  <td className="p-0 text-end align-middle font-semibold tabular-nums">
+                    <Link
+                      href={`/${locale}/dashboard/sessions/${r.id}`}
+                      className="block px-2 py-2.5"
+                      tabIndex={-1}
+                    >
+                      {formatInteger(r.inputCount, locale)}
+                    </Link>
                   </td>
-                  <td className="px-2 py-2.5 text-end align-middle font-semibold tabular-nums">
-                    {r.inputCount > 0 ? formatPercent(r.successRate, locale) : '—'}
+                  <td className="p-0 text-end align-middle font-semibold tabular-nums">
+                    <Link
+                      href={`/${locale}/dashboard/sessions/${r.id}`}
+                      className="block px-2 py-2.5"
+                      tabIndex={-1}
+                    >
+                      {r.inputCount > 0 ? formatPercent(r.successRate, locale) : '—'}
+                    </Link>
                   </td>
                 </tr>
               ))}

@@ -65,8 +65,10 @@ const nextConfig = {
   serverRuntimeConfig: {
     maxBodySizeMb: 1,
   },
-  // Transpile internal workspace packages so their TS/ESM source resolves under Next's bundler.
-  transpilePackages: ['@bluecare/shared', '@bluecare/db'],
+  // Transpile internal workspace packages so their TS/ESM source resolves
+  // under Next's bundler. @react-pdf/renderer ships ESM-only — Next 14
+  // refuses to load it through webpack without this hint.
+  transpilePackages: ['@bluecare/shared', '@bluecare/db', '@react-pdf/renderer'],
 
   images: {
     formats: ['image/avif', 'image/webp'],

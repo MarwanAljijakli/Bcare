@@ -1,21 +1,19 @@
-import { Grid3x3, Settings, Sparkles, Wand2 } from 'lucide-react';
+import { FileText, Grid3x3, Settings, Sparkles, UserPlus, Wand2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
 
 /**
- * Quick-actions footer — board / personalization / themes / settings.
+ * Quick-actions footer — board / personalization / themes / therapists /
+ * reports / settings.
  *
- * Replaces the placeholder dashboard's CTA card grid. Smaller, less
- * dominant; the dashboard now leads with stats, and these are the
- * "where do I go from here" rails at the bottom.
- *
- * All four destinations are real and shipped.
+ * Module 6.1 added Therapists + Reports to the rail. All six
+ * destinations are real and shipped.
  */
 export function QuickActionsFooter() {
   const t = useTranslations('marketing.app.dashboard.v6');
   return (
     <nav aria-label={t('quickActions.heading')}>
-      <ul className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
         <Action
           href="/board"
           label={t('quickActions.board')}
@@ -32,6 +30,16 @@ export function QuickActionsFooter() {
           icon={<Sparkles className="h-4 w-4" />}
         />
         <Action
+          href="/dashboard/therapists"
+          label={t('quickActions.therapists')}
+          icon={<UserPlus className="h-4 w-4" />}
+        />
+        <Action
+          href="/dashboard/reports"
+          label={t('quickActions.reports')}
+          icon={<FileText className="h-4 w-4" />}
+        />
+        <Action
           href="/settings/privacy"
           label={t('quickActions.settings')}
           icon={<Settings className="h-4 w-4" />}
@@ -46,7 +54,13 @@ function Action({
   label,
   icon,
 }: {
-  href: '/board' | '/dashboard/personalization' | '/dashboard/themes' | '/settings/privacy';
+  href:
+    | '/board'
+    | '/dashboard/personalization'
+    | '/dashboard/themes'
+    | '/dashboard/therapists'
+    | '/dashboard/reports'
+    | '/settings/privacy';
   label: string;
   icon: React.ReactNode;
 }) {
