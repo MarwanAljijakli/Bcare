@@ -1,5 +1,6 @@
 import { router } from '../trpc';
 import { accountRouter } from './account';
+import { adminRouter } from './admin';
 import { boardRouter } from './board';
 import { consentRouter } from './consent';
 import { gamificationRouter } from './gamification';
@@ -13,6 +14,7 @@ import { voiceRouter } from './voice';
 
 export const appRouter = router({
   account: accountRouter,
+  admin: adminRouter,
   board: boardRouter,
   consent: consentRouter,
   gamification: gamificationRouter,

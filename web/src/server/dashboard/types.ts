@@ -15,6 +15,11 @@ export interface DashboardCaregiver {
   firstName: string | null;
   email: string | null;
   locale: AppLocale;
+  /** Module 7 — true when this user's profile.role === 'admin'. The
+   *  dashboard shell uses it to surface an "Admin" header link. The
+   *  /admin route is independently gated by requireAdmin(); this is
+   *  presentation only. */
+  isAdmin?: boolean;
 }
 
 export interface DashboardChild {

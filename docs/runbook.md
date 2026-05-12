@@ -160,6 +160,20 @@ Run this checklist when Modules 6–9 are done and BlueCare is ready for
 real users. Every step is mandatory; skipping any one of them is a
 launch blocker.
 
+0. **Demote the dev-caregiver from admin to caregiver** (Module 7
+   bypass enablement promoted them so /admin would be reachable under
+   bypass). MUST run BEFORE step 1 — if the env vars come out first,
+   the dev caregiver row keeps `role=admin` and any future real user
+   who somehow gets re-authed against that user_id would inherit
+   admin rights.
+
+   ```bash
+   pnpm tsx db/scripts/revoke-dev-admin.ts
+   # → ✓ Demoted to role=caregiver.
+   ```
+
+   Verify via Supabase: `select role from profiles where user_id = '<AUTH_BYPASS_USER_ID>'` → `'caregiver'`.
+
 1. **Remove the env vars from every Vercel scope** (production, preview,
    development):
 

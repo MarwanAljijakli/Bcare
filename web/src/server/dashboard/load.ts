@@ -127,12 +127,14 @@ function emptyPayload(args: {
   caregiverEmail: string | null;
   locale: AppLocale;
   newCaregiver: boolean;
+  isAdmin?: boolean;
 }): DashboardPayload {
   return {
     caregiver: {
       firstName: args.caregiverFirstName,
       email: args.caregiverEmail,
       locale: args.locale,
+      isAdmin: args.isAdmin ?? false,
     },
     children: [],
     activeChildId: null,
@@ -176,7 +178,8 @@ export async function loadDashboard(args: LoadDashboardArgs): Promise<DashboardP
   const { supabase, userId, locale, childIdParam } = args;
   const now = args.now ?? new Date();
 
-  // 1. Caregiver profile (best-effort).
+  // 1. Caregiver profile (best-effort). We also read `role` so the
+  // dashboard shell can surface the Admin link when the caller has it.
   const profileFetch = (
     supabase.from('profiles') as never as {
       select: (cols: string) => {
@@ -185,13 +188,13 @@ export async function loadDashboard(args: LoadDashboardArgs): Promise<DashboardP
           v: string,
         ) => {
           maybeSingle: () => Promise<{
-            data: { full_name: string | null } | null;
+            data: { full_name: string | null; role: string | null } | null;
           }>;
         };
       };
     }
   )
-    .select('full_name')
+    .select('full_name, role')
     .eq('user_id', userId)
     .maybeSingle();
 
@@ -223,6 +226,7 @@ export async function loadDashboard(args: LoadDashboardArgs): Promise<DashboardP
 
   const caregiverFirstName = firstNameOf(profileRes.data?.full_name ?? null);
   const caregiverEmail = userRes.data.user?.email ?? null;
+  const isAdmin = profileRes.data?.role === 'admin';
   const childrenRaw = childrenRes.data ?? [];
 
   if (childrenRaw.length === 0) {
@@ -231,6 +235,7 @@ export async function loadDashboard(args: LoadDashboardArgs): Promise<DashboardP
       caregiverEmail,
       locale,
       newCaregiver: true,
+      isAdmin,
     });
   }
 
@@ -513,6 +518,7 @@ export async function loadDashboard(args: LoadDashboardArgs): Promise<DashboardP
       firstName: caregiverFirstName,
       email: caregiverEmail,
       locale,
+      isAdmin,
     },
     children,
     activeChildId,

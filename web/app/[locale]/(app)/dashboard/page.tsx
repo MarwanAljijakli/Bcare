@@ -50,7 +50,7 @@ async function loadDashboardSafe(args: {
     const userRes = await supabase.auth.getUser();
     if (!userRes.data.user) {
       return {
-        caregiver: { firstName: null, email: null, locale: args.locale },
+        caregiver: { firstName: null, email: null, locale: args.locale, isAdmin: false },
         children: [],
         activeChildId: null,
         hero: {
@@ -90,7 +90,7 @@ async function loadDashboardSafe(args: {
     });
   } catch {
     return {
-      caregiver: { firstName: null, email: null, locale: args.locale },
+      caregiver: { firstName: null, email: null, locale: args.locale, isAdmin: false },
       children: [],
       activeChildId: null,
       hero: {

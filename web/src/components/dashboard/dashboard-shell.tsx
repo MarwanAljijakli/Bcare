@@ -1,3 +1,4 @@
+import { Shield } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { NewCaregiverEmpty } from './empty-states';
 import { GreetingHeader } from './greeting-header';
@@ -50,6 +51,15 @@ export function DashboardShell({ payload }: { payload: DashboardPayload }) {
             <Logo size="md" wordmark="auto" />
           </Link>
           <div className="flex items-center gap-2">
+            {payload.caregiver.isAdmin && (
+              <Link
+                href="/admin"
+                className="text-fg hover:bg-bg-muted focus-visible:ring-ring inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2"
+              >
+                <Shield aria-hidden="true" className="h-4 w-4" />
+                <span>{tCommon('admin')}</span>
+              </Link>
+            )}
             <ThemeSwitcher />
             <LanguageSwitcher />
           </div>
