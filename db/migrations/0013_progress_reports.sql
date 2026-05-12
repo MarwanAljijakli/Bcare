@@ -88,8 +88,8 @@ create policy progress_reports_read_own
     )
     or exists (
       select 1
-      from public.users u
-      where u.id = auth.uid() and u.role = 'admin'
+      from public.profiles p
+      where p.user_id = auth.uid() and p.role = 'admin'
     )
   );
 
