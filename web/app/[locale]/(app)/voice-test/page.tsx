@@ -41,9 +41,8 @@ export default async function VoiceTestPage({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  // Resolve the active child (the dev caregiver under bypass mode has
-  // exactly one child). The client needs child_id for the voice
-  // endpoints' RLS auth check.
+  // Resolve the active child for the signed-in caregiver. The client
+  // needs child_id for the voice endpoints' RLS auth check.
   const { createSupabaseServerClient } = await import('@/lib/supabase/server');
   const supabase = await createSupabaseServerClient();
   const { data: childRows } = await (

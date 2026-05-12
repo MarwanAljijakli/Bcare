@@ -24,9 +24,17 @@
  * Server-only — `ELEVENLABS_API_KEY` MUST never reach the browser.
  */
 import 'server-only';
+import './http-agent';
 
 const ELEVENLABS_API = 'https://api.elevenlabs.io/v1';
 const MODEL_ID = 'eleven_multilingual_v2';
+/**
+ * Phase 10.A — drop output bitrate from the default 128 kbps to
+ * 32 kbps mp3 @ 22.05 kHz. Speech is fine at that quality (we tested
+ * with native-Arabic-speaker acceptance), files are ~4× smaller, and
+ * Supabase Storage's CDN delivers them noticeably faster on cellular.
+ */
+const OUTPUT_FORMAT = 'mp3_22050_32';
 
 /** Known voice IDs. Both work for EN + AR via the multilingual model. */
 export const VOICE_IDS = {
@@ -83,7 +91,7 @@ export async function elevenlabsSynthesize(input: SynthesizeInput): Promise<Synt
     throw new Error(`synthesize: text too long (${text.length} chars > 5000)`);
   }
 
-  const url = `${ELEVENLABS_API}/text-to-speech/${encodeURIComponent(input.voice_id)}`;
+  const url = `${ELEVENLABS_API}/text-to-speech/${encodeURIComponent(input.voice_id)}?output_format=${OUTPUT_FORMAT}`;
   const speed = Math.max(0.5, Math.min(2.0, input.speed ?? 1.0));
   const body = JSON.stringify({
     text,

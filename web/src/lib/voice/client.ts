@@ -58,6 +58,15 @@ export class VoiceServiceError extends Error {
   }
 }
 
+/** What `speakClient` resolves with — gives the board client enough to
+ *  surface the ⚡ Instant badge when the audio came from cache. */
+export interface SpeakClientResult {
+  /** True when the server reported the audio was a cache hit. */
+  cached: boolean;
+  /** End-to-end latency measured by the route handler, in milliseconds. */
+  durationMs: number;
+}
+
 /**
  * Synthesize + play. Resolves when audio ends. Rejects with a typed
  * VoiceServiceError on any failure.
@@ -66,7 +75,7 @@ export class VoiceServiceError extends Error {
  * `cancelSpeechClient()` can stop it. A new call cancels the previous
  * one (matches the old browser-tts behavior).
  */
-export async function speakClient(input: SpeakClientInput): Promise<void> {
+export async function speakClient(input: SpeakClientInput): Promise<SpeakClientResult> {
   cancelSpeechClient();
 
   const res = await fetch('/api/voice/synthesize', {
@@ -107,9 +116,17 @@ export async function speakClient(input: SpeakClientInput): Promise<void> {
     }
     throw new VoiceServiceError('network', `synthesize ${res.status}: ${body.detail ?? '?'}`);
   }
-  const body = (await res.json()) as { url?: string };
+  const body = (await res.json()) as {
+    url?: string;
+    cached?: boolean;
+    durationMs?: number;
+  };
   const url = body.url;
   if (!url) throw new VoiceServiceError('network', 'synthesize returned no url');
+  const meta: SpeakClientResult = {
+    cached: body.cached === true,
+    durationMs: typeof body.durationMs === 'number' ? body.durationMs : 0,
+  };
 
   // Play. Wait for ended. Reject on error.
   await new Promise<void>((resolve, reject) => {
@@ -139,6 +156,7 @@ export async function speakClient(input: SpeakClientInput): Promise<void> {
       reject(new VoiceServiceError('playback', e instanceof Error ? e.message : 'play() rejected'));
     });
   });
+  return meta;
 }
 
 /** Stop any audio currently playing from a `speakClient()` call. */
@@ -161,8 +179,15 @@ export function cancelSpeechClient(): void {
 export interface TranscribeClientInput {
   lang: VoiceLocale;
   childId: string;
-  /** Hard cap on recording length in seconds. Defaults to 5. */
+  /** Hard cap on recording length in seconds. Phase 10.B raised this
+   *  from 5 → 12 (longer = slower transcription, but children do
+   *  occasionally need more than 5s). The client cuts off cleanly
+   *  with a soft chime when the timer fires. */
   maxSec?: number;
+  /** Fires when the MediaRecorder stops and we start uploading audio
+   *  to /api/voice/transcribe. The parent uses this to flip the
+   *  hold-to-speak button from "Listening…" → "Transcribing…". */
+  onTranscribing?: () => void;
 }
 
 export interface TranscribeClientResult {
@@ -200,7 +225,7 @@ export async function transcribeClient(
   if (!('mediaDevices' in navigator) || !navigator.mediaDevices.getUserMedia) {
     throw new VoiceServiceError('mic_unsupported', 'MediaDevices API not available');
   }
-  const maxMs = (input.maxSec ?? 5) * 1000;
+  const maxMs = (input.maxSec ?? 12) * 1000;
 
   let stream: MediaStream;
   try {
@@ -251,6 +276,11 @@ export async function transcribeClient(
 
   if (chunks.length === 0) throw new VoiceServiceError('mic_denied', 'no audio captured');
   const audioBlob = new Blob(chunks, { type: mime || 'audio/webm' });
+
+  // Recording finished — surface the "Transcribing…" state to the parent
+  // so the user sees clear sequential feedback instead of one long
+  // ambiguous spinner.
+  input.onTranscribing?.();
 
   const fd = new FormData();
   fd.append('audio', audioBlob);

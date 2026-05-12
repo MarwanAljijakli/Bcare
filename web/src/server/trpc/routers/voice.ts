@@ -105,6 +105,36 @@ export const voiceRouter = router({
         target_id: input.childId,
         metadata: { kind: 'voice_settings_changed', ...patch },
       });
+
+      // Phase 10.A — when the voice changes, the existing cache is
+      // keyed under the old voice id. Fire-and-forget re-warm so the
+      // child's next session hits the new voice's pre-baked audio.
+      if (input.voice !== undefined || input.speed !== undefined) {
+        void (async () => {
+          try {
+            const { prewarmChildVocabulary, prewarmCommonPhrases } =
+              await import('@/lib/voice/prewarm');
+            const voice = (input.voice ?? 'charlotte') as 'charlotte' | 'sarah';
+            const speed = input.speed ?? 1.0;
+            await Promise.allSettled([
+              prewarmChildVocabulary({
+                supabaseAdmin: ctx.supabaseAdmin as never,
+                childId: input.childId,
+                voice,
+                speed,
+              }),
+              prewarmCommonPhrases({
+                supabaseAdmin: ctx.supabaseAdmin as never,
+                childId: input.childId,
+                voice,
+                speed,
+              }),
+            ]);
+          } catch {
+            /* never blocks the settings mutation */
+          }
+        })();
+      }
       return { ok: true };
     }),
 });

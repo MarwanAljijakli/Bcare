@@ -24,9 +24,16 @@
  * Server-only — `OPENAI_API_KEY` MUST never reach the browser.
  */
 import 'server-only';
+import './http-agent';
 
 const OPENAI_API = 'https://api.openai.com/v1';
-const MODEL_ID = 'tts-1-hd';
+/**
+ * Phase 10.A — switch from tts-1-hd to tts-1. Studio-quality HD nuance
+ * doesn't help speech intelligibility on the AAC board and tts-1 is
+ * ~2× faster + ~2× cheaper. We use HD only for the /voice-test admin
+ * page when an operator wants to A/B the timbre.
+ */
+const MODEL_ID = 'tts-1';
 
 /** Known voices. Both work for EN + AR (model handles both). */
 export const OPENAI_TTS_VOICES = {

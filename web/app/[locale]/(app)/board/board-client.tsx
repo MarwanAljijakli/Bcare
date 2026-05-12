@@ -6,7 +6,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { BoardSymbol, CategoryKey } from '@/components/board/types';
 import { CategoryRail } from '@/components/board/category-rail';
 import { FavoritesBar } from '@/components/board/favorites-bar';
-import { HoldToSpeakButton } from '@/components/board/hold-to-speak-button';
+import { HoldToSpeakButton, type HoldToSpeakState } from '@/components/board/hold-to-speak-button';
+import { LevelBadge } from '@/components/board/level-badge';
 import { QuietModeToggle } from '@/components/board/quiet-mode-toggle';
 import { SentenceStrip } from '@/components/board/sentence-strip';
 import { SpeakButton } from '@/components/board/speak-button';
@@ -63,9 +64,15 @@ export function BoardClient({ locale }: { locale: 'en' | 'ar' }) {
   const [quietMode, setQuietMode] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState<number | null>(null);
-  const [listening, setListening] = useState(false);
+  const [sttState, setSttState] = useState<HoldToSpeakState>('idle');
   const [sttUnavailableReason, setSttUnavailableReason] = useState<string | null>(null);
+  /** Phase 10.B — surface a soft "transcription is slow today" hint when
+   *  Whisper takes longer than 5 s end-to-end. Resets on each press. */
+  const [sttSlowHint, setSttSlowHint] = useState(false);
   const [celebrationKey, setCelebrationKey] = useState(0);
+  /** Phase 10.A — last-speak cache hit so the ⚡ Instant badge surfaces
+   *  when the strip is fully pre-warmed. */
+  const [lastSpeakCached, setLastSpeakCached] = useState(false);
 
   // Module 5 — gamification. Awards a star on TTS success (server-side
   // enforces the 5/day cap + streak math). The component below renders
@@ -197,12 +204,13 @@ export function BoardClient({ locale }: { locale: 'en' | 'ar' }) {
     const startedAt = Date.now();
     try {
       if (!child) return;
-      await speakClient({
+      const speakRes = await speakClient({
         text,
         lang: locale,
         childId: child.id,
         volume: quietMode ? 0.6 : 1,
       });
+      setLastSpeakCached(speakRes.cached);
       outputCountRef.current += 1;
       // Award a star — server enforces the daily cap (5) and streak math.
       // Best-effort: a network blip shouldn't degrade the speak experience.
@@ -231,16 +239,33 @@ export function BoardClient({ locale }: { locale: 'en' | 'ar' }) {
 
   async function handleHoldStart() {
     if (!stt.available || !child) return;
-    setListening(true);
+    setSttState('listening');
+    setSttSlowHint(false);
+    let transcribeStartedAt = 0;
+    const slowTimer = window.setTimeout(() => setSttSlowHint(true), 5_000);
     try {
-      const result = await transcribeClient({ lang: locale, childId: child.id, maxSec: 5 });
+      const result = await transcribeClient({
+        lang: locale,
+        childId: child.id,
+        maxSec: 12,
+        onTranscribing: () => {
+          transcribeStartedAt = Date.now();
+          setSttState('transcribing');
+        },
+      });
+      window.clearTimeout(slowTimer);
       // Phase 9.B — the server may return transcript=null with a typed
       // reason (too_short / hallucination_detected). Treat those as
       // "no input" silently; the hold-to-speak path doesn't surface a
       // toast on the board.
       if (!result.transcript) {
-        setListening(false);
         return;
+      }
+      // Phase 10.B — if the transcribe phase ran < 5s end-to-end the
+      // slow-Whisper hint can come down (it may have been raised by
+      // the timer just to avoid surprising the caregiver).
+      if (transcribeStartedAt && Date.now() - transcribeStartedAt < 5_000) {
+        setSttSlowHint(false);
       }
       const matchPool = symbols.map((s) => ({
         id: s.id,
@@ -277,13 +302,14 @@ export function BoardClient({ locale }: { locale: 'en' | 'ar' }) {
       // Cap-reached / voice_unavailable / mic_denied — surface silently
       // in v1; a future iteration will show a calm toast. Module 6
       // already has a per-child voice budget UI on /settings.
+      window.clearTimeout(slowTimer);
       if (e instanceof VoiceServiceError) {
         if (e.kind === 'cap_reached' || e.kind === 'voice_unavailable') {
           setSttUnavailableReason(e.kind);
         }
       }
     } finally {
-      setListening(false);
+      setSttState('idle');
     }
   }
 
@@ -343,16 +369,21 @@ export function BoardClient({ locale }: { locale: 'en' | 'ar' }) {
        *  is set or quiet mode is on. */}
       <StarCelebration triggerKey={celebrationKey} silent={quietMode} caption={t('starEarned')} />
       <header className="border-border bg-bg/90 sticky top-0 z-20 flex items-center gap-3 border-b px-4 py-3 backdrop-blur md:px-6">
-        <h1 className="text-fg flex-1 text-lg font-bold tracking-tight md:text-xl">
-          {t('greeting', { name: child.preferred_name || child.full_name })}
-        </h1>
+        <div className="min-w-0 flex-1 space-y-1">
+          <h1 className="text-fg truncate text-lg font-bold tracking-tight md:text-xl">
+            {t('greeting', { name: child.preferred_name || child.full_name })}
+          </h1>
+          <LevelBadge childId={child.id} locale={locale} />
+        </div>
         <HoldToSpeakButton
           onStart={() => void handleHoldStart()}
           onStop={handleHoldStop}
           available={stt.available}
-          listening={listening}
+          state={sttState}
           label={t('holdToSpeak')}
           unavailableLabel={t('holdToSpeakUnavailable')}
+          listeningLabel={t('listening')}
+          transcribingLabel={t('transcribing')}
         />
         <QuietModeToggle
           on={quietMode}
@@ -415,6 +446,8 @@ export function BoardClient({ locale }: { locale: 'en' | 'ar' }) {
         label={t('speak')}
         speakingLabel={t('speaking')}
         emptyLabel={t('emptySpeak')}
+        cachedHint={lastSpeakCached}
+        cachedHintLabel={t('cachedInstant')}
       />
 
       <footer className="text-fg-subtle border-border container border-t py-3 text-center text-xs">
@@ -425,6 +458,15 @@ export function BoardClient({ locale }: { locale: 'en' | 'ar' }) {
         <p role="status" className="sr-only">
           {t(`sttReasons.${sttUnavailableReason}` as 'sttReasons.no_browser_api')}
         </p>
+      )}
+      {sttSlowHint && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="border-warning/40 bg-warning/10 text-fg-muted fixed bottom-24 left-1/2 z-30 -translate-x-1/2 rounded-full border px-4 py-2 text-xs shadow"
+        >
+          {t('transcribeSlowHint')}
+        </div>
       )}
     </div>
   );

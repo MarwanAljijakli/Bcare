@@ -26,6 +26,7 @@
  *     disabled state on the hold-to-speak button.
  */
 import 'server-only';
+import './http-agent';
 import {
   computeCacheKey,
   getCachedAudio,

@@ -322,6 +322,28 @@ export const onboardingRouter = router({
       .delete()
       .eq('user_id', ctx.session.userId);
 
+    // 5. Phase 10.A — kick off voice pre-warm as fire-and-forget so the
+    //    child's first tap-to-speak hits a warm CDN instead of waiting
+    //    on a cold ElevenLabs call. We don't await it; the caregiver
+    //    sees a "Preparing voice…" toast in the wizard's review step.
+    void (async () => {
+      try {
+        const { createSupabaseAdminClient } = await import('@/lib/supabase/server');
+        const { prewarmChildVocabulary, prewarmCommonPhrases } =
+          await import('@/lib/voice/prewarm');
+        const admin = createSupabaseAdminClient();
+        const voice = (payload.child?.voiceId === 'sarah' ? 'sarah' : 'charlotte') as
+          | 'charlotte'
+          | 'sarah';
+        await Promise.allSettled([
+          prewarmChildVocabulary({ supabaseAdmin: admin as never, childId, voice, speed: 1.0 }),
+          prewarmCommonPhrases({ supabaseAdmin: admin as never, childId, voice, speed: 1.0 }),
+        ]);
+      } catch {
+        /* never blocks finalize */
+      }
+    })();
+
     return { ok: true, childId };
   }),
 });

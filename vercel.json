@@ -12,6 +12,14 @@
     {
       "path": "/api/cron/hard-delete",
       "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/prewarm-voices",
+      "schedule": "30 3 * * *"
+    },
+    {
+      "path": "/api/cron/generate-weekly-reports",
+      "schedule": "0 2 * * 1"
     }
   ]
 }
