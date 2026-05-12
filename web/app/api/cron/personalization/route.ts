@@ -89,10 +89,9 @@ export async function GET(req: NextRequest) {
         { status: 503 },
       );
     }
-    // Module 2.A.1.bypass — separately surface that bypass is active
-    // in production. Doesn't abort the cron (we WANT it active during
-    // Modules 6-9), but adds a daily audit-log breadcrumb so a missed
-    // pre-launch flip is impossible to ignore.
+    // Phase 10.C — the auth bypass flip means bypassActive should ALWAYS
+    // be false in production. If we ever observe it true, log so the
+    // operator notices on the next morning's cron audit.
     if (probeBody.bypassActive === true && probeBody.vercelEnv === 'production') {
       await (
         supabaseAdmin.from('audit_log') as never as {
@@ -103,7 +102,10 @@ export async function GET(req: NextRequest) {
         action: 'admin_action',
         target_type: 'auth_bypass',
         target_id: null,
-        metadata: { kind: 'auth_bypass_active_in_production', vercelEnv: probeBody.vercelEnv },
+        metadata: {
+          kind: 'auth_bypass_unexpectedly_active',
+          vercelEnv: probeBody.vercelEnv,
+        },
       });
     }
   } catch {
@@ -117,6 +119,17 @@ export async function GET(req: NextRequest) {
     for (const r of summary.results) {
       totalSuggestions += r.suggestionsCreated;
       if (r.levelAdvanced) totalAdvances++;
+    }
+
+    // Phase 10.D — refresh the mastery materialized view so the board
+    // badge + dashboard stats reflect today's input_events. Best-effort;
+    // a failure here is non-fatal (the view stays at yesterday's data).
+    try {
+      await (supabaseAdmin as unknown as { rpc: (fn: string) => Promise<{ error: unknown }> }).rpc(
+        'refresh_mastery_view',
+      );
+    } catch (e) {
+      console.error('refresh_mastery_view failed:', e instanceof Error ? e.message : String(e));
     }
 
     // Quality Fix Phase 3 — Claude contextual suggestion pass. Runs
@@ -138,10 +151,7 @@ export async function GET(req: NextRequest) {
       }
       totalSuggestions += claudeSuggestionsCreated;
     } catch (e) {
-      console.error(
-        'claude pass failed:',
-        e instanceof Error ? e.message : String(e),
-      );
+      console.error('claude pass failed:', e instanceof Error ? e.message : String(e));
     }
 
     // Audit-log the run. actor_id null = system action.

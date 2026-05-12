@@ -54,9 +54,16 @@ function SettingsHeader() {
 function Sidebar() {
   const t = useTranslations('marketing.app.settings.nav');
   const items: Array<{
-    key: 'privacy' | 'therapists' | 'account';
-    href: '/settings/privacy' | '/settings/therapists' | '/settings/account';
+    key: 'level' | 'voice' | 'privacy' | 'therapists' | 'account';
+    href:
+      | '/settings/level'
+      | '/settings/voice'
+      | '/settings/privacy'
+      | '/settings/therapists'
+      | '/settings/account';
   }> = [
+    { key: 'level', href: '/settings/level' },
+    { key: 'voice', href: '/settings/voice' },
     { key: 'privacy', href: '/settings/privacy' },
     { key: 'therapists', href: '/settings/therapists' },
     { key: 'account', href: '/settings/account' },
