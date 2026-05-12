@@ -14,21 +14,21 @@ export const EN_ARTICLES: HelpArticle[] = [
     title: 'Signing up for BlueCare',
     summary: 'How to create your account, what we ask, and what happens after you sign up.',
     updatedAt: '2026-05-12',
-    tags: ['signup', 'account', 'consent', 'magic-link'],
-    lead: 'Creating a BlueCare account takes about a minute. You only need a working email — there is no password to remember on signup. We send a magic-link instead, and you click it once to enter the app.',
+    tags: ['signup', 'account', 'consent', 'password', 'verification'],
+    lead: 'Creating a BlueCare account takes about a minute. You pick an email and a password, agree to one consent statement, and confirm your email by clicking the link we send you.',
     sections: [
       {
         heading: 'What we ask for at signup',
         paragraphs: [
-          'We ask for three things: your role (parent or therapist), your full name, and your email. Your name is used to greet you on the dashboard and to identify you to therapists you later invite. Your email is the login identifier; nothing is shared with third parties.',
+          'We ask for four things: your role (parent or therapist), your full name, your email, and a password (8 characters minimum, must include a number). Your name is used to greet you on the dashboard and to identify you to therapists you later invite. Your email is the login identifier; nothing is shared with third parties.',
           'We also ask for one explicit consent at signup: that we may process your data to provide the service. That consent is recorded with a timestamp and a version number in our database so you can revoke it later from Settings → Privacy.',
         ],
       },
       {
-        heading: 'The magic-link flow',
+        heading: 'The email verification flow',
         paragraphs: [
-          'After you submit the signup form, we mail you a link. Clicking the link in your inbox signs you in. The link expires after one hour. If you miss it, request a fresh one from the login page — it will land within 10 seconds.',
-          'There is no password to set. If you prefer a password later, you can add one from Settings → Account.',
+          'After you submit the signup form, we mail you a verification link. Clicking the link confirms your email and lets you sign in. The link expires after 24 hours — if it expires, sign in with your email + password from the login page and the app will prompt you to resend.',
+          'Forgot your password? Use Reset password on the login page — we will mail you a one-hour recovery link.',
         ],
       },
       {
