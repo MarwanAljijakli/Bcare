@@ -24,10 +24,13 @@ export type AiService =
   | 'elevenlabs_tts'
   | 'azure_tts'
   // Quality Fix Phase 0 — Claude Sonnet 4.6 sub-services. Migration
-  // 0005 extended the public.ai_service enum to match.
+  // 0005 extended the public.ai_service enum to match. Phase 10.E
+  // added `claude_report` for the weekly parent-facing insights via
+  // migration 0011.
   | 'claude_suggest'
   | 'claude_audit'
   | 'claude_complete'
+  | 'claude_report'
   | 'claude_other';
 
 export interface GuardInput {

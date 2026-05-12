@@ -37,7 +37,12 @@ const INPUT_PER_MTOK_USD = 3;
 const OUTPUT_PER_MTOK_USD = 15;
 
 /** Which sub-service is this call attributed to in ai_usage_ledger? */
-export type ClaudeService = 'claude_suggest' | 'claude_audit' | 'claude_complete' | 'claude_other';
+export type ClaudeService =
+  | 'claude_suggest'
+  | 'claude_audit'
+  | 'claude_complete'
+  | 'claude_report'
+  | 'claude_other';
 
 /**
  * True when ANTHROPIC_API_KEY is configured. Surfaces a "Claude features

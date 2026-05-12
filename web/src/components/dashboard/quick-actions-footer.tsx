@@ -1,23 +1,29 @@
-import { FileText, Grid3x3, Settings, Sparkles, UserPlus, Wand2 } from 'lucide-react';
+import { FileText, Grid3x3, Lightbulb, Settings, Sparkles, UserPlus, Wand2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
 
 /**
- * Quick-actions footer — board / personalization / themes / therapists /
- * reports / settings.
+ * Quick-actions footer — board / insights / personalization / themes /
+ * therapists / reports / settings.
  *
- * Module 6.1 added Therapists + Reports to the rail. All six
- * destinations are real and shipped.
+ * Module 6.1 added Therapists + Reports to the rail; Phase 10.E added
+ * Insights (Claude weekly summaries). All seven destinations are real
+ * and shipped — laid out 7-up on lg screens.
  */
 export function QuickActionsFooter() {
   const t = useTranslations('marketing.app.dashboard.v6');
   return (
     <nav aria-label={t('quickActions.heading')}>
-      <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+      <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
         <Action
           href="/board"
           label={t('quickActions.board')}
           icon={<Grid3x3 className="h-4 w-4" />}
+        />
+        <Action
+          href="/dashboard/insights"
+          label={t('quickActions.insights')}
+          icon={<Lightbulb className="h-4 w-4" />}
         />
         <Action
           href="/dashboard/personalization"
@@ -56,6 +62,7 @@ function Action({
 }: {
   href:
     | '/board'
+    | '/dashboard/insights'
     | '/dashboard/personalization'
     | '/dashboard/themes'
     | '/dashboard/therapists'
