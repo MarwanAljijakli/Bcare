@@ -1,6 +1,6 @@
 # BlueCare
 
-> Smart, Personalized Communication for Children with Autism — **free for everyone.**
+> A free, bilingual AAC platform for children with autism — in English and Arabic.
 
 ## What is BlueCare today
 
@@ -10,59 +10,42 @@ app for non-verbal and minimally verbal children with autism. A child
 taps picture tiles on a board, presses Speak, and hears a natural-
 sounding voice say the assembled phrase. Caregivers and therapists get
 a separate dashboard showing vocabulary growth, session replay with
-notes, and AI-suggested next words. Voice in English routes through
-OpenAI's Nova voice; voice in Arabic routes through ElevenLabs'
-Charlotte voice (a Saudi-dialect-aware choice after native-speaker
-acceptance testing). Speech-to-text is OpenAI Whisper. Personalization
-suggestions are powered by Anthropic Claude. The cost per child is
-capped at $20/month and the system gracefully degrades when the cap
-is reached — never paywalled.
+notes, weekly Claude-generated progress insights, and AI-suggested
+next words. Voice in English routes through OpenAI's Nova voice; voice
+in Arabic routes through ElevenLabs' Charlotte voice (a Saudi-dialect-
+aware choice after native-speaker acceptance testing). Speech-to-text
+runs on OpenAI's gpt-4o-mini-transcribe with Whisper-style biasing
+prompts and hallucination filtering. Personalization and progress
+reports are powered by Anthropic Claude. The cost per child is capped
+at $20/month and the system gracefully degrades when the cap is
+reached — never paywalled.
 
-As of 2026-05-12 the entire product is **code-complete and live on
-Vercel** in development bypass mode. You can click around every shipped
-surface without filling in a signup form (one click takes you in as
-"Test Caregiver"). 159 starter symbols are seeded, the dashboard +
-admin + therapist + help center are all wired, 12 bilingual help
-articles ship, PDF progress reports export client-side, and the
-symbol-image audit run found only 2 mismatches out of 159 (down from
-33 after prompt refinement). Four operator-gated items remain before
-flipping auth on for public users — see "Before public launch" below.
+**Free for every family.** No subscriptions, no tiers, no waitlist,
+no paywalls — for families, therapists, and educators alike. The
+mission is reach and impact, not revenue.
 
-### Try it now (live demo)
+As of 2026-05-12 BlueCare is **live in production** at
+[bcare-ten.vercel.app](https://bcare-ten.vercel.app). Sign-up uses
+real email-and-password authentication with email verification (no
+dev shortcuts remain in production). 159 starter symbols are seeded
+across both locales, the dashboard / admin / therapist / help-center
+surfaces are wired, 12 bilingual help articles ship, PDF progress
+reports export client-side, weekly Claude-driven insights generate on
+a cron, and per-child vocabulary levels auto-promote at 80% mastery.
 
-| Audience          | Link                                         |
-| ----------------- | -------------------------------------------- |
-| English demo      | <https://bcare-ten.vercel.app/en>            |
-| Arabic demo (RTL) | <https://bcare-ten.vercel.app/ar>            |
-| Admin surface     | <https://bcare-ten.vercel.app/en/admin>      |
-| Voice A/B test    | <https://bcare-ten.vercel.app/en/voice-test> |
-| Help center       | <https://bcare-ten.vercel.app/en/help>       |
+### Try it
 
-A 10-step click-path walkthrough designed for first-time visitors
-is in [`docs/demo-walkthrough.md`](docs/demo-walkthrough.md).
+| Audience            | Link                                            |
+| ------------------- | ----------------------------------------------- |
+| English landing     | <https://bcare-ten.vercel.app/en>               |
+| Arabic landing (RTL)| <https://bcare-ten.vercel.app/ar>               |
+| Sign up             | <https://bcare-ten.vercel.app/en/signup>        |
+| Help center         | <https://bcare-ten.vercel.app/en/help>          |
 
-### Before public launch
-
-Four operator-gated items in [`docs/release-scorecard.md`](docs/release-scorecard.md):
-
-1. **Manual VoiceOver + NVDA screen-reader pass** on every shipped
-   surface ([`docs/a11y-test-report.md`](docs/a11y-test-report.md)).
-2. **Sentry + PostHog + Upstash Redis** credentials provisioned
-   (code is wired; ~15 min of setup —
-   [`docs/pre-release-credentials.md`](docs/pre-release-credentials.md)).
-3. **Supabase Auth Hooks custom-mailer** deployed for the bilingual
-   email templates (same doc, section 4).
-4. **Playwright critical-flow E2E** suite wired against a
-   throwaway test-Supabase project (optional, but pre-launch
-   regression net).
-
-Once those land, run the pre-launch flip-back checklist in
-[`docs/runbook.md`](docs/runbook.md) — step 0 demotes the dev
-caregiver from admin **before** the bypass env vars come out.
-
-> Status: **open beta — free for everyone**, building in public. See [`/docs`](./docs/)
-> for architecture, data model, deploy, runbook, accessibility report, and the
-> canonical critical-flows checklist.
+A 10-step click-path walkthrough is in
+[`docs/demo-walkthrough.md`](docs/demo-walkthrough.md). Operator
+verification + cron-trigger curls live in
+[`docs/runbook.md`](docs/runbook.md).
 
 ---
 

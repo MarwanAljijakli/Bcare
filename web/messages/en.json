@@ -302,7 +302,7 @@
       },
       "joinUs": {
         "title": "Join us",
-        "body": "We're hiring no one yet — the team is small on purpose. If you're a speech therapist, a parent of a child with autism, or an Arabic-speaking AAC researcher, we'd love your feedback during early access.",
+        "body": "We're hiring no one yet — the team is small on purpose. If you're a speech therapist, a parent of a child with autism, or an Arabic-speaking AAC researcher, we'd love to hear from you.",
         "cta": "Get in touch"
       }
     },
@@ -504,20 +504,16 @@
     },
     "auth": {
       "shell": {
-        "panelEyebrow": "Open beta — free for everyone",
+        "panelEyebrow": "Free for every family",
         "testimonials": [
           "BlueCare gives my son his voice back.",
           "The bilingual board is the first AAC tool that meets our family where we are.",
           "I can finally see what works for my client between sessions — without paperwork."
         ],
-        "testimonialAttribution": "— early tester"
-      },
-      "devBanner": {
-        "title": "Auth is in mock mode",
-        "body": "Supabase credentials aren't configured yet, so signup and login simulate responses. Real auth ships when credentials are added."
+        "testimonialAttribution": "— BlueCare family"
       },
       "signup": {
-        "eyebrow": "Open beta",
+        "eyebrow": "Create account",
         "title": "Create your BlueCare account.",
         "subtitle": "Free for everyone. No credit card. One form for families, therapists, and school staff.",
         "roleLabel": "I am a…",
@@ -541,16 +537,20 @@
         "fullNameError": "Please enter your full name (2–80 characters).",
         "emailLabel": "Email",
         "emailPlaceholder": "you@example.com",
-        "emailErrorRequired": "We need an email to send your magic link.",
+        "emailErrorRequired": "Please enter your email address.",
         "emailErrorInvalid": "That doesn't look like a valid email address.",
         "schoolNameLabel": "School name",
         "schoolNamePlaceholder": "Where you work",
         "schoolNameError": "Please enter the name of your school.",
         "passwordLabel": "Password",
         "passwordPlaceholder": "At least 12 characters",
-        "passwordErrorRequired": "Password is required when you opt out of magic link.",
+        "passwordErrorRequired": "Please choose a password.",
         "passwordErrorTooShort": "Password must be at least 12 characters.",
         "passwordErrorWeak": "Use a mix of letters and numbers — and a symbol if you like.",
+        "passwordConfirmLabel": "Confirm password",
+        "passwordConfirmPlaceholder": "Type it again",
+        "passwordConfirmErrorRequired": "Please confirm your password.",
+        "passwordConfirmErrorMismatch": "Passwords don't match.",
         "showPassword": "Show password",
         "hidePassword": "Hide password",
         "strength": {
@@ -565,12 +565,9 @@
         "consentLabelPrivacy": "Privacy Policy",
         "consentLabelEnd": ".",
         "consentError": "We need your agreement to continue.",
-        "primaryMagicLink": "Send me a magic link",
-        "primaryMagicLinkHelper": "We'll email you a secure link. No password needed.",
-        "primaryPassword": "Create account",
-        "togglePassword": "Use a password instead",
-        "toggleMagicLink": "Use a magic link instead",
-        "submitting": "Working on it…",
+        "primary": "Create account",
+        "primaryHelper": "We'll email you a one-time link to verify your address.",
+        "submitting": "Creating your account…",
         "haveAccount": "Already have an account?",
         "signInLink": "Sign in",
         "ageNotice": "By creating an account you confirm you are 18+ and the legal guardian of any child profile you add.",
@@ -579,12 +576,13 @@
           "userExistsAction": "Sign in instead?",
           "rateLimited": "Too many attempts. Please wait a minute and try again.",
           "serverUnreachable": "We couldn't reach the server. Please try again in a moment.",
-          "unconfigured": "We're getting set up. Authentication will be available very shortly — please check back."
+          "unconfigured": "We're getting set up. Authentication will be available very shortly — please check back.",
+          "unknown": "Something went wrong. Please try again."
         },
         "success": {
           "title": "Check your email.",
-          "bodyMagic": "We sent a magic link to {email}. Click it to verify your account and start onboarding.",
           "bodyPassword": "We sent a verification link to {email}. Click it to confirm your account, then sign in.",
+          "bodyMagic": "We sent a verification link to {email}. Click it to confirm your account, then sign in.",
           "resendLabel": "Resend email",
           "resendCountdown": "Resend in {seconds}s",
           "wrongEmail": "Wrong email?",
@@ -592,48 +590,76 @@
         }
       },
       "login": {
-        "eyebrow": "Open beta",
+        "eyebrow": "Sign in",
         "title": "Welcome back.",
-        "subtitle": "Sign in with a magic link or your password.",
+        "subtitle": "Sign in with your email and password.",
         "emailLabel": "Email",
         "emailPlaceholder": "you@example.com",
         "passwordLabel": "Password",
         "passwordPlaceholder": "Your password",
         "showPassword": "Show password",
         "hidePassword": "Hide password",
-        "primaryMagicLink": "Send me a magic link",
-        "primaryMagicLinkHelper": "We'll email you a secure link. No password needed.",
-        "primaryPassword": "Sign in",
-        "togglePassword": "Sign in with password",
-        "toggleMagicLink": "Use a magic link instead",
+        "primary": "Sign in",
         "forgotPassword": "Forgot your password?",
-        "submitting": "Working on it…",
+        "submitting": "Signing you in…",
         "needAccount": "New to BlueCare?",
         "signUpLink": "Get started",
         "errors": {
           "userNotFound": "We couldn't find an account with that email.",
           "userNotFoundAction": "Create one?",
-          "invalidCredentials": "That password doesn't match our records. Magic link works too — try that.",
+          "invalidCredentials": "That email and password don't match. Please try again.",
+          "emailNotConfirmed": "Please verify your email first. Check your inbox for the confirmation link.",
           "rateLimited": "Too many attempts. Please wait a minute and try again.",
           "serverUnreachable": "We couldn't reach the server. Please try again in a moment.",
-          "unconfigured": "Authentication is being configured. Please check back in a moment."
-        },
-        "success": {
-          "title": "Check your email.",
-          "body": "We sent a magic link to {email}. Click it and you'll be signed in.",
-          "resendLabel": "Resend email",
-          "resendCountdown": "Resend in {seconds}s",
-          "wrongEmail": "Wrong email?",
-          "useDifferent": "Use a different email"
+          "unconfigured": "Authentication is being configured. Please check back in a moment.",
+          "unknown": "Something went wrong. Please try again."
         }
       },
       "resetPassword": {
-        "eyebrow": "Open beta",
-        "title": "Reset your password.",
-        "subtitle": "We'll email you a link to set a new one.",
-        "comingSoon": "The password-reset flow lands with the rest of authentication in the next module. For now, magic link sign-in is the fastest way back into your account.",
-        "useMagicLink": "Use a magic link instead",
-        "backToLogin": "Back to sign in"
+        "eyebrow": "Reset password",
+        "title": "Forgot your password?",
+        "subtitle": "Enter your email and we'll send you a link to choose a new one.",
+        "emailLabel": "Email",
+        "emailPlaceholder": "you@example.com",
+        "emailErrorRequired": "Please enter your email address.",
+        "emailErrorInvalid": "That doesn't look like a valid email address.",
+        "primary": "Send reset link",
+        "submitting": "Sending…",
+        "remembered": "Remembered it?",
+        "loginLink": "Back to sign in",
+        "backToLogin": "Back to sign in",
+        "sentTitle": "Check your email.",
+        "sentBody": "If an account exists for {email}, we just sent a reset link. Click it to choose a new password.",
+        "sentHelper": "The link expires in one hour. If you don't see it, check your spam folder.",
+        "errors": {
+          "rateLimited": "Too many requests. Please wait a minute and try again.",
+          "serverUnreachable": "We couldn't reach the server. Please try again.",
+          "unknown": "Something went wrong. Please try again."
+        }
+      },
+      "resetPasswordConfirm": {
+        "eyebrow": "Set new password",
+        "title": "Choose a new password.",
+        "subtitle": "Pick something at least 12 characters long with a mix of letters and numbers.",
+        "passwordLabel": "New password",
+        "passwordPlaceholder": "At least 12 characters",
+        "passwordErrorTooShort": "Password must be at least 12 characters.",
+        "passwordErrorWeak": "Use a mix of letters and numbers — and a symbol if you like.",
+        "confirmLabel": "Confirm new password",
+        "confirmPlaceholder": "Type it again",
+        "confirmErrorRequired": "Please confirm your new password.",
+        "confirmErrorMismatch": "Passwords don't match.",
+        "primary": "Update password",
+        "submitting": "Updating…",
+        "successTitle": "Password updated.",
+        "successBody": "You can now sign in with your new password.",
+        "goToLogin": "Go to sign in",
+        "errors": {
+          "noSession": "Your reset link has expired or was already used. Please request a new one.",
+          "weakPassword": "That password doesn't meet the requirements. Try something stronger.",
+          "serverUnreachable": "We couldn't reach the server. Please try again.",
+          "unknown": "Something went wrong. Please try again."
+        }
       },
       "onboarding": {
         "eyebrow": "Welcome",
@@ -747,7 +773,7 @@
         },
         "voice": {
           "title": "Choose a voice",
-          "subtitle": "We'll preview a short sample. Real voices ship in the next module — for now you'll hear a placeholder tone.",
+          "subtitle": "Pick a voice. We'll preview a short sample so you can hear how the board will sound.",
           "legend": "Voice options",
           "voices": {
             "voice-warm": {
@@ -821,6 +847,8 @@
       "settings": {
         "nav": {
           "title": "Settings",
+          "level": "Learning level",
+          "voice": "Voice",
           "privacy": "Privacy",
           "therapists": "Therapists",
           "account": "Account"
@@ -884,8 +912,16 @@
         "speak": "Speak",
         "speaking": "Speaking…",
         "emptySpeak": "Add symbols to begin",
+        "cachedInstant": "Instant",
         "holdToSpeak": "Hold to speak",
         "holdToSpeakUnavailable": "Voice input unavailable",
+        "listening": "Listening…",
+        "transcribing": "Transcribing…",
+        "transcribeSlowHint": "Transcription is slow today — try a shorter clip.",
+        "levelBadgeLevel": "Level {ordinal}/{totalLevels}",
+        "levelBadgeMastered": "{mastered}/{total} mastered",
+        "levelBadgeReady": "Ready to level up",
+        "levelBadgeLabel": "Current level: {level}, {mastered} of {total} symbols mastered",
         "quietModeOn": "Quiet mode",
         "quietModeOff": "Quiet mode",
         "favorites": "Favorites",
@@ -1060,6 +1096,7 @@
           "quickActions": {
             "heading": "Quick actions",
             "board": "Open the board",
+            "insights": "View insights",
             "personalization": "Review suggestions",
             "themes": "Browse themes",
             "settings": "Manage settings",
@@ -1118,6 +1155,10 @@
             }
           }
         }
+      },
+      "insights": {
+        "title": "Insights",
+        "subtitle": "Claude-generated weekly progress for your child — strengths, growth areas, and what to try at home."
       },
       "personalization": {
         "title": "Personalization",

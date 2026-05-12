@@ -37,9 +37,10 @@
 
 ## Verifying production signup works
 
-**Required at every CHECKPOINT going forward.** A 200 from `/api/health` and a
-400 from a malformed `/api/auth/signup` body do NOT prove signup works — both
-were green during the Module 2.A.1.fix incident while real users got 500s.
+**Required at every CHECKPOINT going forward.** Production is the
+email + password + email-verification flow (Phase 10.C — bypass mode
+is gone). A 200 from `/api/health` and a 400 from a malformed
+`/api/auth/signup` body do NOT prove signup works.
 
 ### Step 1 — curl probe against the live deploy
 
@@ -48,10 +49,10 @@ PROBE_EMAIL="bcare-cli+verify-$(date +%s)@gmail.com"
 PROBE_HASH="$(printf 'consent-text-2026-05-09.1' | sha256sum | awk '{print $1}')"
 curl -sS -i -X POST "https://bcare-ten.vercel.app/api/auth/signup" \
   -H "Content-Type: application/json" \
-  -d "{\"method\":\"magic-link\",\"email\":\"$PROBE_EMAIL\",\"fullName\":\"Verify Probe\",\"role\":\"family\",\"consent\":{\"granted\":true,\"version\":\"2026-05-09.1\",\"textHash\":\"$PROBE_HASH\"},\"locale\":\"en\"}"
+  -d "{\"method\":\"password\",\"email\":\"$PROBE_EMAIL\",\"password\":\"StrongPassw0rd-2026!\",\"fullName\":\"Verify Probe\",\"role\":\"family\",\"consent\":{\"granted\":true,\"version\":\"2026-05-09.1\",\"textHash\":\"$PROBE_HASH\"},\"locale\":\"en\"}"
 ```
 
-Expected: HTTP 200 (or 201) + body `{"ok":true,"mode":"real","method":"magic-link"}`.
+Expected: HTTP 201 + body `{"ok":true,"mode":"real","method":"password"}`.
 Anything else — including `"detail":"Database error saving new user"` — is a
 hard fail; do not declare the CHECKPOINT done.
 
@@ -122,7 +123,75 @@ pnpm exec tsx db/scripts/send-test-magic-link.ts <your-email>
 The script POSTs against the LIVE `/api/auth/login` (or `/api/auth/signup`
 if the user doesn't exist yet) — same path the form would hit.
 
-## Auth bypass mode (Module 2.A.1.bypass)
+## Standard production operations (Phase 10.C)
+
+Auth bypass mode was removed at Phase 10.C. The live site at
+<https://bcare-ten.vercel.app> requires real signup to access anything
+beyond marketing/help. The dev caregiver account (formerly auto-signed-in
+by `/api/auth/dev-login`) was demoted to `caregiver` role and can sign
+in via the normal password flow if needed for support.
+
+### Email confirmation template
+
+Phase 10.C ships with the production "Confirm signup" email template
+checked in at `db/supabase/email-templates/confirm-signup.{en,ar}.html`.
+Paste it into the Supabase dashboard so users see the BlueCare
+wordmark + bilingual copy:
+
+1. Open <https://supabase.com/dashboard/project/_/auth/templates>.
+2. Pick **Confirm signup**.
+3. Paste the HTML body from `confirm-signup.en.html` (English is the
+   primary locale; Supabase doesn't support per-recipient templating in
+   the open-source tier yet — Arabic-speaking users get the EN
+   confirmation but land on `/ar/...` after click).
+4. Set the **Confirmation URL** field if your project still has the
+   legacy placeholder — `{{ .ConfirmationURL }}` already routes through
+   `/auth/callback` because the signup API sets `emailRedirectTo`.
+5. Save and send yourself a test signup to verify rendering.
+
+If you've already pasted it from a previous CHECKPOINT, you can
+confirm it's still installed by sending a test signup and checking the
+inbox — the BlueCare wordmark + "Confirm my email" CTA pill should
+both appear.
+
+### Password recovery operations
+
+- Users hit `/<locale>/reset-password`, enter their email, and receive
+  a recovery email (Supabase "Reset password" template — the default
+  Supabase template is fine here; we don't customize it yet).
+- The recovery link points at `/auth/callback?next=/<locale>/reset-password/confirm`
+  which exchanges the recovery code for a session cookie, then renders
+  the **Set new password** form.
+- The form posts to `/api/auth/update-password`. Errors:
+  - 401 — recovery link expired or already used; ask the user to
+    request a new email.
+  - 400 — password too weak; surface to the user.
+
+### Health probes
+
+```bash
+# Phase 10.C — bypass must always be false in prod.
+curl -sS https://bcare-ten.vercel.app/api/health/auth \
+  | jq '{ok, bypassActive, supabaseProject, magicLinkOk}'
+# Expected: { "ok": true, "bypassActive": false,
+#             "supabaseProject": "ikaaxfhenfbpfjqboixk",
+#             "magicLinkOk": true }
+```
+
+The personalization cron (`/api/cron/personalization`) probes
+`/api/health/auth` on every run. If `bypassActive` is ever observed
+`true` in production, it writes an `auth_bypass_unexpectedly_active`
+entry to `audit_log` — page on-call.
+
+### Magic-link admin path (support only)
+
+The `/api/auth/signup` and `/api/auth/login` routes still accept
+`method:'magic-link'` for the rare case where a support engineer needs
+to mint a one-shot login link for a stuck user (their dashboard auth
+config: <https://supabase.com/dashboard/project/_/auth/users>). The UI
+never surfaces it, so no normal user can trigger it.
+
+### Historical: auth-bypass removal (closed, kept for audit)
 
 **Status (2026-05-09 → market launch):** auth bypass is INTENTIONALLY
 ACTIVE in production so Modules 6–9 can be built and tested in-browser

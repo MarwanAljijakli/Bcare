@@ -14,8 +14,8 @@ import { pageMetadata } from '@/lib/seo';
  *
  * Auth gate: parent (app)/layout.tsx ensures sign-in. Admin role
  * check via `profiles.role='admin'` is the next layer up — for now
- * the dev caregiver bypass user IS an admin in this dev posture; a
- * Module 7 follow-up will gate this strictly.
+ * the (app)/layout requires sign-in; full admin role gating ships
+ * with the next admin-tools module.
  */
 
 interface AuditRow {
@@ -45,8 +45,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: A
   return pageMetadata({
     locale,
     path: 'admin/symbols-audit',
-    title: 'Symbols audit',
-    description: 'Quality Fix monitoring view onto the latest symbol_audit run.',
+    title: 'Symbol quality review',
+    description: 'Read-only view onto the latest Claude vision review of the symbol library.',
     robots: { index: false, follow: false },
   });
 }
@@ -116,9 +116,9 @@ export default async function SymbolsAuditPage({
   return (
     <main className="container space-y-6 py-10">
       <header>
-        <h1 className="text-fg text-3xl font-bold">Symbols audit</h1>
+        <h1 className="text-fg text-3xl font-bold">Symbol quality review</h1>
         <p className="text-fg-muted mt-2 text-sm">
-          Latest Claude vision audit run — read-only monitoring view.
+          Latest Claude vision review of the symbol library — read-only.
         </p>
       </header>
 
@@ -152,7 +152,7 @@ export default async function SymbolsAuditPage({
 
           {mismatched.length > 0 && (
             <section className="space-y-2">
-              <h2 className="text-fg text-lg font-bold">Mismatches</h2>
+              <h2 className="text-fg text-lg font-bold">Needs review</h2>
               <ul className="space-y-2">
                 {mismatched.map((r) => (
                   <li

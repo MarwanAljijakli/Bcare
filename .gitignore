@@ -82,3 +82,9 @@ public/robots.txt.generated
 .husky/_
 
 .vercel
+
+# agent worktrees + scratch
+.claude/
+.tmp/
+
+.vercel
