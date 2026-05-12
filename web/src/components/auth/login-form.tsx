@@ -1,29 +1,24 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState, useTransition, useId, type FormEvent } from 'react';
-import { CheckEmailState } from './check-email-state';
 import { PasswordInput } from './password-input';
 import type { AppLocale } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Link } from '@/i18n/routing';
-import { useReducedMotion } from '@/lib/motion';
 
-type Method = 'magic-link' | 'password';
 type FormState =
   | { kind: 'idle' }
   | { kind: 'submitting' }
-  | { kind: 'sent'; email: string }
-  | { kind: 'signed-in' }
   | { kind: 'error'; code: ServerErrorCode };
 
 type ServerErrorCode =
   | 'userNotFound'
   | 'invalidCredentials'
+  | 'emailNotConfirmed'
   | 'rateLimited'
   | 'serverUnreachable'
   | 'unconfigured'
@@ -34,15 +29,19 @@ interface FieldErrors {
   password?: string;
 }
 
+/**
+ * Production login — password only. Phase 10.C removed the magic-link
+ * option from the UI; password sign-in returns a real Supabase
+ * session cookie and the page hard-navigates to the dashboard so
+ * server components see the new auth state.
+ */
 export function LoginForm() {
   const t = useTranslations('marketing.auth.login');
   const locale = useLocale() as AppLocale;
-  const reduced = useReducedMotion();
   const errorBannerId = useId();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [method, setMethod] = useState<Method>('magic-link');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [state, setState] = useState<FormState>({ kind: 'idle' });
   const [pending, startTransition] = useTransition();
@@ -56,9 +55,7 @@ export function LoginForm() {
       if (!trimmed) next.email = t('errors.userNotFound');
       else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) next.email = t('errors.userNotFound');
     }
-    if (method === 'password') {
-      if (touchAll && !password) next.password = t('errors.invalidCredentials');
-    }
+    if (touchAll && !password) next.password = t('errors.invalidCredentials');
     return next;
   }
 
@@ -75,22 +72,17 @@ export function LoginForm() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            method,
+            method: 'password',
             email: email.trim().toLowerCase(),
-            ...(method === 'password' ? { password } : {}),
+            password,
             locale,
           }),
         });
 
         if (res.ok) {
-          if (method === 'magic-link') {
-            setState({ kind: 'sent', email: email.trim().toLowerCase() });
-          } else {
-            // Password login → server set the session cookie; reload home.
-            // (Module 2.B will redirect to a real onboarding/dashboard route
-            // depending on whether onboarding is complete.)
-            window.location.href = `/${locale}`;
-          }
+          // Password login → server set the session cookie; hard-navigate
+          // so server components see the new auth state.
+          window.location.href = `/${locale}/dashboard`;
           return;
         }
 
@@ -100,24 +92,6 @@ export function LoginForm() {
         setState({ kind: 'error', code: 'serverUnreachable' });
       }
     });
-  }
-
-  if (state.kind === 'sent') {
-    return (
-      <CheckEmailState
-        email={state.email}
-        i18nNamespace="marketing.auth.login"
-        bodyKey="body"
-        onResend={async () => {
-          await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ method: 'magic-link', email: state.email, locale }),
-          }).catch(() => {});
-        }}
-        onUseDifferent={() => setState({ kind: 'idle' })}
-      />
-    );
   }
 
   return (
@@ -170,44 +144,32 @@ export function LoginForm() {
         )}
       </div>
 
-      <AnimatePresence initial={false}>
-        {method === 'password' && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: reduced ? 0 : 0.18, ease: [0.2, 0, 0, 1] }}
-            className="overflow-hidden"
+      <div>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="login-password">{t('passwordLabel')}</Label>
+          <Link
+            href="/reset-password"
+            className="text-primary focus-visible:ring-ring rounded text-xs font-medium underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           >
-            <div className="pb-px">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="login-password">{t('passwordLabel')}</Label>
-                <Link
-                  href="/reset-password"
-                  className="text-primary focus-visible:ring-ring rounded text-xs font-medium underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-                >
-                  {t('forgotPassword')}
-                </Link>
-              </div>
-              <PasswordInput
-                id="login-password"
-                name="password"
-                autoComplete="current-password"
-                placeholder={t('passwordPlaceholder')}
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setFieldErrors((p) => ({ ...p, password: undefined }));
-                }}
-                error={fieldErrors.password ?? null}
-                disabled={submitting}
-                i18nNamespace="marketing.auth.login"
-                className="mt-2"
-              />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            {t('forgotPassword')}
+          </Link>
+        </div>
+        <PasswordInput
+          id="login-password"
+          name="password"
+          autoComplete="current-password"
+          placeholder={t('passwordPlaceholder')}
+          value={password}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            setFieldErrors((p) => ({ ...p, password: undefined }));
+          }}
+          error={fieldErrors.password ?? null}
+          disabled={submitting}
+          i18nNamespace="marketing.auth.login"
+          className="mt-2"
+        />
+      </div>
 
       <div className="space-y-2">
         <Button type="submit" size="lg" disabled={submitting} className="w-full">
@@ -218,22 +180,11 @@ export function LoginForm() {
             </>
           ) : (
             <>
-              {method === 'magic-link' ? t('primaryMagicLink') : t('primaryPassword')}
+              {t('primary')}
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </>
           )}
         </Button>
-        {method === 'magic-link' && (
-          <p className="text-fg-subtle text-center text-xs">{t('primaryMagicLinkHelper')}</p>
-        )}
-        <button
-          type="button"
-          onClick={() => setMethod((m) => (m === 'magic-link' ? 'password' : 'magic-link'))}
-          disabled={submitting}
-          className="text-primary focus-visible:ring-ring mx-auto block rounded text-xs font-medium underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-        >
-          {method === 'magic-link' ? t('togglePassword') : t('toggleMagicLink')}
-        </button>
       </div>
 
       <p className="text-fg-muted text-center text-sm">
@@ -270,6 +221,7 @@ function ServerErrorMessage({ code }: { code: ServerErrorCode }) {
 function mapStatusToErrorCode(status: number): ServerErrorCode {
   if (status === 401) return 'invalidCredentials';
   if (status === 404) return 'userNotFound';
+  if (status === 403) return 'emailNotConfirmed';
   if (status === 429) return 'rateLimited';
   if (status === 503) return 'unconfigured';
   if (status >= 500) return 'serverUnreachable';

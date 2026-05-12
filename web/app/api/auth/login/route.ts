@@ -93,6 +93,18 @@ export async function POST(req: NextRequest) {
     });
     if (error) {
       const msg = (error.message ?? '').toLowerCase();
+      if (
+        msg.includes('email not confirmed') ||
+        msg.includes('confirm') ||
+        msg.includes('verified')
+      ) {
+        return problem(
+          403,
+          'email_not_confirmed',
+          'Please verify your email',
+          'Check your inbox for the confirmation link before signing in.',
+        );
+      }
       if (msg.includes('invalid') || msg.includes('credentials')) {
         return problem(401, 'invalid_credentials', 'Invalid email or password');
       }

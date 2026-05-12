@@ -1,6 +1,5 @@
 import { useTranslations } from 'next-intl';
 import { BrandPromisePanel } from './brand-promise-panel';
-import { DevModeBanner } from './dev-mode-banner';
 import type { ReactNode } from 'react';
 import { Logo } from '@/components/brand/logo';
 import { LanguageSwitcher } from '@/components/language-switcher';
@@ -45,8 +44,6 @@ export function AuthShell({
             </div>
           </header>
         </div>
-
-        <DevModeBanner />
 
         <div className="flex flex-1 items-center justify-center px-6 pb-10 pt-4 sm:px-10">
           <div className="w-full max-w-[480px]">{children}</div>

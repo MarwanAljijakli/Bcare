@@ -3,43 +3,12 @@ import createNextIntlPlugin from 'next-intl/plugin';
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 // =============================================================================
-// Module 2.A.1.bypass — production build guard.
-//
-// REFUSE to build a Vercel `production` bundle when AUTH_BYPASS_USER_ID is
-// set unless ALLOW_AUTH_BYPASS_IN_PRODUCTION=true is also set. The escape
-// hatch exists because we DO intentionally ship bypass to the production
-// Vercel environment during Modules 6-9 buildout — but the second flag
-// forces an explicit, auditable opt-in so a future "let me just remove
-// the bypass env var" misstep can't accidentally leave bypass active in
-// the launch build.
-//
-// Pre-launch checklist (docs/runbook.md): remove AUTH_BYPASS_USER_ID,
-// NEXT_PUBLIC_AUTH_BYPASS, and ALLOW_AUTH_BYPASS_IN_PRODUCTION from every
-// Vercel scope. Force-redeploy. /api/health/auth must report
-// bypassActive:false.
+// Phase 10.C — auth bypass mode is GONE. Production ships with real
+// email + password sign-up only. The historical bypass guard that
+// lived here has been removed; if a future engineer reintroduces the
+// bypass env vars, they will not silently leak into production
+// because there is no longer any code path that reads them.
 // =============================================================================
-if (
-  process.env.VERCEL_ENV === 'production' &&
-  process.env.AUTH_BYPASS_USER_ID &&
-  process.env.AUTH_BYPASS_USER_ID.trim().length > 0 &&
-  process.env.ALLOW_AUTH_BYPASS_IN_PRODUCTION !== 'true'
-) {
-  throw new Error(
-    [
-      '',
-      '🚫  Refusing to build: AUTH_BYPASS_USER_ID is set in a Vercel `production` build,',
-      '    but ALLOW_AUTH_BYPASS_IN_PRODUCTION is not "true".',
-      '',
-      '    Choose one:',
-      '      A. Remove AUTH_BYPASS_USER_ID + NEXT_PUBLIC_AUTH_BYPASS from production env',
-      '         (recommended pre-launch).',
-      '      B. Set ALLOW_AUTH_BYPASS_IN_PRODUCTION=true (intentional dev-on-prod).',
-      '',
-      '    See docs/runbook.md § "Pre-launch auth re-enablement checklist".',
-      '',
-    ].join('\n'),
-  );
-}
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {

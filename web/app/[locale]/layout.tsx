@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import type { Metadata, Viewport } from 'next';
-import { DevModeBanner } from '@/components/dev-mode-banner';
 import { QueryProvider } from '@/components/providers/query-provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { SkipLink } from '@/components/skip-link';
@@ -92,11 +91,6 @@ export default async function LocaleLayout({
       className={cn(inter.variable, arabic.variable)}
     >
       <body className="bg-bg text-fg min-h-dvh antialiased">
-        {/* Module 2.A.1.bypass — DevModeBanner self-renders only when
-         *  NEXT_PUBLIC_AUTH_BYPASS=1. Sticky at the very top, above all
-         *  other surfaces. The component is a no-op when the flag is
-         *  unset, so this insertion is free in production. */}
-        <DevModeBanner />
         <ThemeProvider>
           <NextIntlClientProvider locale={locale} messages={messages}>
             <QueryProvider>

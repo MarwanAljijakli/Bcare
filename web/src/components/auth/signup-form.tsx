@@ -17,11 +17,10 @@ import { scorePassword } from '@/lib/auth/strength';
 import { cn } from '@/lib/cn';
 import { useReducedMotion } from '@/lib/motion';
 
-type Method = 'magic-link' | 'password';
 type FormState =
   | { kind: 'idle' }
   | { kind: 'submitting' }
-  | { kind: 'sent'; method: Method; email: string }
+  | { kind: 'sent'; email: string }
   | { kind: 'error'; code: ServerErrorCode };
 
 type ServerErrorCode =
@@ -37,14 +36,23 @@ interface FieldErrors {
   email?: string;
   schoolName?: string;
   password?: string;
+  passwordConfirm?: string;
   consent?: string;
 }
 
 /**
- * The real signup form. Magic-link primary, password disclosure secondary.
- * Validation runs on blur and on submit; errors are kind, specific, and
- * inline-rendered. Form posts JSON to /api/auth/signup which adapts to
- * Supabase or the dev mock based on env-var presence.
+ * Production signup — password + email-verification only. Phase 10.C
+ * removed the magic-link option from the UI (the API route still
+ * accepts `method:'magic-link'` for the support runbook). On submit:
+ *
+ *   1. POST /api/auth/signup with method:'password'
+ *   2. Supabase fires its built-in "Confirm signup" email template
+ *   3. User clicks the link → /auth/callback exchanges code for session
+ *   4. /onboarding takes over from the cookie-bound session
+ *
+ * Validation is identical client + server (zod superRefine). The
+ * password field also gets a confirmation mirror so accidental typos
+ * surface before the email roundtrip.
  */
 export function SignupForm({
   consentVersion,
@@ -58,14 +66,12 @@ export function SignupForm({
   const reduced = useReducedMotion();
   const errorBannerId = useId();
 
-  // Form state — controlled inputs so the strength meter, role-conditional
-  // school field, and password disclosure all derive from a single source.
   const [role, setRole] = useState<SignupRole | undefined>(undefined);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [schoolName, setSchoolName] = useState('');
-  const [method, setMethod] = useState<Method>('magic-link');
   const [password, setPassword] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState('');
   const [consentGranted, setConsentGranted] = useState(false);
 
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -74,7 +80,6 @@ export function SignupForm({
 
   const submitting = pending || state.kind === 'submitting';
 
-  /** Pure-function validator; returns FieldErrors with no UI side-effects. */
   const validate = useMemo(() => {
     return (opts: { touchAll: boolean }): FieldErrors => {
       const next: FieldErrors = {};
@@ -94,27 +99,30 @@ export function SignupForm({
       if (role === 'school') {
         if (opts.touchAll && !schoolName.trim()) next.schoolName = t('schoolNameError');
       }
-      if (method === 'password') {
-        if (opts.touchAll && !password) next.password = t('passwordErrorRequired');
-        else if (password) {
-          const s = scorePassword(password);
-          if (password.length < 12) next.password = t('passwordErrorTooShort');
-          else if (!s.meetsPolicy) next.password = t('passwordErrorWeak');
+      if (opts.touchAll && !password) next.password = t('passwordErrorRequired');
+      else if (password) {
+        const s = scorePassword(password);
+        if (password.length < 12) next.password = t('passwordErrorTooShort');
+        else if (!s.meetsPolicy) next.password = t('passwordErrorWeak');
+      }
+      if (opts.touchAll || passwordConfirm.length > 0) {
+        if (!passwordConfirm) {
+          if (opts.touchAll) next.passwordConfirm = t('passwordConfirmErrorRequired');
+        } else if (passwordConfirm !== password) {
+          next.passwordConfirm = t('passwordConfirmErrorMismatch');
         }
       }
       if (opts.touchAll && !consentGranted) next.consent = t('consentError');
       return next;
     };
-  }, [role, fullName, email, schoolName, method, password, consentGranted, t]);
+  }, [role, fullName, email, schoolName, password, passwordConfirm, consentGranted, t]);
 
-  /** Per-field blur handlers — touches just that field. */
   function blurField(field: keyof FieldErrors) {
     setFieldErrors((prev) => {
       const fresh = validate({ touchAll: false });
       return { ...prev, [field]: fresh[field] };
     });
   }
-  /** Clear a field error as soon as the value looks valid. */
   function changeAndClear(field: keyof FieldErrors, _next: string) {
     setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
   }
@@ -132,19 +140,19 @@ export function SignupForm({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            method,
+            method: 'password',
             email: email.trim().toLowerCase(),
             fullName: fullName.trim(),
             role,
             ...(role === 'school' ? { schoolName: schoolName.trim() } : {}),
-            ...(method === 'password' ? { password } : {}),
+            password,
             consent: { granted: true, version: consentVersion, textHash: consentTextHash },
             locale,
           }),
         });
 
         if (res.status === 201) {
-          setState({ kind: 'sent', method, email: email.trim().toLowerCase() });
+          setState({ kind: 'sent', email: email.trim().toLowerCase() });
           return;
         }
 
@@ -167,20 +175,18 @@ export function SignupForm({
       <CheckEmailState
         email={state.email}
         i18nNamespace="marketing.auth.signup"
-        bodyKey={state.method === 'magic-link' ? 'bodyMagic' : 'bodyPassword'}
+        bodyKey="bodyPassword"
         onResend={async () => {
-          // Best-effort resend; same payload, ignore response (the countdown
-          // resets regardless so a flake doesn't lock the user out).
           await fetch('/api/auth/signup', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              method,
+              method: 'password',
               email: state.email,
               fullName: fullName.trim(),
               role,
               ...(role === 'school' ? { schoolName: schoolName.trim() } : {}),
-              ...(method === 'password' ? { password } : {}),
+              password,
               consent: { granted: true, version: consentVersion, textHash: consentTextHash },
               locale,
             }),
@@ -292,8 +298,6 @@ export function SignupForm({
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: reduced ? 0 : 0.18, ease: [0.2, 0, 0, 1] }}
-            // overflow-hidden so the height transition doesn't reveal the
-            // input mid-animation.
             className="overflow-hidden"
           >
             <div className="pb-px">
@@ -324,37 +328,44 @@ export function SignupForm({
         )}
       </AnimatePresence>
 
-      <AnimatePresence initial={false}>
-        {method === 'password' && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: reduced ? 0 : 0.18, ease: [0.2, 0, 0, 1] }}
-            className="overflow-hidden"
-          >
-            <div className="pb-px">
-              <Label htmlFor="signup-password">{t('passwordLabel')}</Label>
-              <PasswordInput
-                id="signup-password"
-                name="password"
-                autoComplete="new-password"
-                placeholder={t('passwordPlaceholder')}
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  changeAndClear('password', e.target.value);
-                }}
-                onBlur={() => blurField('password')}
-                showStrength
-                error={fieldErrors.password ?? null}
-                disabled={submitting}
-                className="mt-2"
-              />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div>
+        <Label htmlFor="signup-password">{t('passwordLabel')}</Label>
+        <PasswordInput
+          id="signup-password"
+          name="password"
+          autoComplete="new-password"
+          placeholder={t('passwordPlaceholder')}
+          value={password}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            changeAndClear('password', e.target.value);
+          }}
+          onBlur={() => blurField('password')}
+          showStrength
+          error={fieldErrors.password ?? null}
+          disabled={submitting}
+          className="mt-2"
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="signup-password-confirm">{t('passwordConfirmLabel')}</Label>
+        <PasswordInput
+          id="signup-password-confirm"
+          name="passwordConfirm"
+          autoComplete="new-password"
+          placeholder={t('passwordConfirmPlaceholder')}
+          value={passwordConfirm}
+          onChange={(e) => {
+            setPasswordConfirm(e.target.value);
+            changeAndClear('passwordConfirm', e.target.value);
+          }}
+          onBlur={() => blurField('passwordConfirm')}
+          error={fieldErrors.passwordConfirm ?? null}
+          disabled={submitting}
+          className="mt-2"
+        />
+      </div>
 
       <ConsentCheckbox
         granted={consentGranted}
@@ -375,24 +386,12 @@ export function SignupForm({
             </>
           ) : (
             <>
-              {method === 'magic-link' ? t('primaryMagicLink') : t('primaryPassword')}
+              {t('primary')}
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </>
           )}
         </Button>
-        {method === 'magic-link' && (
-          <p className="text-fg-subtle text-center text-xs">{t('primaryMagicLinkHelper')}</p>
-        )}
-        <button
-          type="button"
-          onClick={() => setMethod((m) => (m === 'magic-link' ? 'password' : 'magic-link'))}
-          disabled={submitting}
-          className={cn(
-            'text-primary focus-visible:ring-ring mx-auto block rounded text-xs font-medium underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-          )}
-        >
-          {method === 'magic-link' ? t('togglePassword') : t('toggleMagicLink')}
-        </button>
+        <p className="text-fg-subtle text-center text-xs">{t('primaryHelper')}</p>
       </div>
 
       <p className="text-fg-muted text-center text-sm">

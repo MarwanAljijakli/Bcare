@@ -21,7 +21,10 @@ export default async function OnboardingIndex({
     const { data } = await (
       supabase.from('draft_onboarding') as never as {
         select: (cols: string) => {
-          eq: (col: string, v: string) => {
+          eq: (
+            col: string,
+            v: string,
+          ) => {
             maybeSingle: () => Promise<{ data: { step: string } | null }>;
           };
         };

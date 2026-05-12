@@ -13,7 +13,7 @@ import { loadDashboard } from '@/server/dashboard/load';
  * `<DashboardShell>` over a single batched server-side data load.
  *
  * Auth gate: the parent `(app)/layout.tsx` redirects unauthenticated
- * visitors to `/login` (or `/api/auth/dev-login` under Module 2.A.1.bypass).
+ * visitors to `/login`.
  * By the time this page runs, `supabase.auth.getUser()` is guaranteed
  * to return a user.
  *
