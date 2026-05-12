@@ -23,7 +23,7 @@ function problem(status: number, code: string, title: string, detail?: string) {
 }
 
 export async function POST(req: NextRequest) {
-  if (rateLimitLogin(clientIp(req))) {
+  if (await rateLimitLogin(clientIp(req))) {
     return problem(429, 'rate_limited', 'Too many login attempts', 'Try again in a minute.');
   }
 

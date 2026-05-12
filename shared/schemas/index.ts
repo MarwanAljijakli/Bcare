@@ -5,4 +5,4 @@
 // re-exports the foundation schemas only; per-feature schemas live in sibling files.
 
 export * from './common';
-export * from './waitlist';
+// Module 9: ./waitlist re-export removed alongside the waitlist_signups table drop.

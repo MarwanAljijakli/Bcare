@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useState } from 'react';
 import type { HelpArticle } from '@/content/help';
 import { Button } from '@/components/ui/button';
-import { trpc } from '@/lib/trpc/client';
 
 interface Props {
   locale: 'en' | 'ar';
@@ -22,7 +21,6 @@ function slugify(s: string): string {
 
 export function ArticleClient({ locale, article }: Props) {
   const T = LABELS[locale];
-  const feedback = trpc.help.feedback.useMutation();
   const [voted, setVoted] = useState<'up' | 'down' | null>(null);
   const [copiedAnchor, setCopiedAnchor] = useState<string | null>(null);
 
@@ -37,7 +35,13 @@ export function ArticleClient({ locale, article }: Props) {
     if (voted) return;
     setVoted(helpful ? 'up' : 'down');
     try {
-      await feedback.mutateAsync({ slug: article.slug, locale, helpful });
+      // Help is a public surface (outside the TrpcProvider tree); use a
+      // plain fetch to the public POST endpoint instead of trpc.
+      await fetch('/api/help/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: article.slug, locale, helpful }),
+      });
     } catch {
       /* anonymous — failure is silent, keep the UI optimistic */
     }

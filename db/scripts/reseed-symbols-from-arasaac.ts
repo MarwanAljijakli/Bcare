@@ -258,8 +258,8 @@ async function main(): Promise<void> {
   const rejectionRunId = `reseed-rej-${runTs}`;
   const insertedTag = `qfix-reseed:${runTs}`;
 
-  const libId = await ensureLibrary(supabase);
-  const inserted = await existingTargets(supabase);
+  const libId = await ensureLibrary(supabase as never);
+  const inserted = await existingTargets(supabase as never);
   console.info(`[reseed] library_id     = ${libId}`);
   console.info(`[reseed] targets        = ${targets.length}`);
   console.info(`[reseed] already-have   = ${inserted.size}`);
@@ -445,7 +445,7 @@ async function main(): Promise<void> {
 
     // Insert the verified candidate.
     const { row: cand, ar, finding, buffer } = acceptedFor;
-    const objectPath = await uploadImage(supabase, cand._id, buffer);
+    const objectPath = await uploadImage(supabase as never, cand._id, buffer);
     const insertRes = await (
       supabase.from('symbols') as never as {
         insert: (row: Record<string, unknown>) => {

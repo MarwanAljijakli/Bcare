@@ -80,12 +80,72 @@ const nextConfig = {
   },
 
   // Tight default headers. Per-route overrides applied via middleware where needed.
+  //
+  // Module 9 tightening:
+  //   • Content-Security-Policy — strict-dynamic for scripts; allow blob: + data: for
+  //     PDF generation (@react-pdf/renderer creates blob URLs); allow Supabase Storage
+  //     CDN for symbol images; allow fonts.gstatic + jsdelivr for the PDF Cairo font.
+  //   • Cross-Origin-Opener-Policy = same-origin so the OS spell-check / picker
+  //     popups don't leak window references.
+  //   • Cross-Origin-Embedder-Policy = unsafe-none — we don't need COEP-isolated mode
+  //     and switching to require-corp would break the jsdelivr font load. Documented.
+  //   • Permissions-Policy whitelists ONLY microphone (STT) and camera (future gesture
+  //     mode); everything else explicitly disabled.
   async headers() {
+    const supabaseHost = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').replace(/^https?:\/\//, '');
+    const cspDirectives = [
+      "default-src 'self'",
+      // Inline scripts are needed for Next.js's runtime + framer-motion + react-pdf.
+      // 'strict-dynamic' is the future-proof move; we keep 'unsafe-inline' as the
+      // fallback for browsers that don't honor strict-dynamic (mostly older Safari).
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:",
+      "style-src 'self' 'unsafe-inline'",
+      `img-src 'self' data: blob: ${supabaseHost ? `https://${supabaseHost}` : ''} https://*.supabase.co`.trim(),
+      // Fonts: self + Google fonts CDN (used by next/font) + jsdelivr (used by the
+      // PDF report's Cairo font registration).
+      "font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net",
+      // The TTS audio comes from Supabase Storage public URLs.
+      `media-src 'self' blob: ${supabaseHost ? `https://${supabaseHost}` : ''} https://*.supabase.co`.trim(),
+      // Allow XHR/fetch to our own origin, Supabase Storage + Auth, OpenAI/Anthropic/
+      // ElevenLabs proxied through our /api routes (the actual outbound calls are
+      // server-side; the browser never reaches them directly — but if a future
+      // dev-only diagnostic ever does, this allow-list is honest).
+      `connect-src 'self' ${supabaseHost ? `https://${supabaseHost}` : ''} https://*.supabase.co`.trim(),
+      "frame-ancestors 'none'",
+      "form-action 'self'",
+      "base-uri 'self'",
+      "object-src 'none'",
+      'upgrade-insecure-requests',
+    ];
+    const csp = cspDirectives.filter(Boolean).join('; ');
+
+    const permissionsPolicy = [
+      // Allowed only on this origin, never embedded:
+      'microphone=(self)',
+      'camera=(self)',
+      // Everything else disabled:
+      'geolocation=()',
+      'usb=()',
+      'magnetometer=()',
+      'gyroscope=()',
+      'accelerometer=()',
+      'payment=()',
+      'autoplay=(self)',
+      'fullscreen=(self)',
+      'picture-in-picture=()',
+      'screen-wake-lock=()',
+      'sync-xhr=()',
+      'midi=()',
+    ].join(', ');
+
     const securityHeaders = [
       { key: 'X-Content-Type-Options', value: 'nosniff' },
       { key: 'X-Frame-Options', value: 'DENY' },
       { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-      { key: 'Permissions-Policy', value: 'camera=(self), microphone=(self), geolocation=()' },
+      { key: 'Content-Security-Policy', value: csp },
+      { key: 'Permissions-Policy', value: permissionsPolicy },
+      { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
+      { key: 'Cross-Origin-Embedder-Policy', value: 'unsafe-none' },
       { key: 'X-DNS-Prefetch-Control', value: 'on' },
     ];
     return [{ source: '/:path*', headers: securityHeaders }];

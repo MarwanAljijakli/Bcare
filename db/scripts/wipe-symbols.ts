@@ -120,7 +120,7 @@ async function main(): Promise<void> {
 
   // 2. Pre-flight counts.
   console.info('[2/4] counts before wipe …');
-  const counts = await tableCounts(supabase);
+  const counts = await tableCounts(supabase as never);
   for (const [t, c] of Object.entries(counts)) console.info(`  ${t.padEnd(28)} : ${c}`);
   console.info('');
 
@@ -166,7 +166,7 @@ async function main(): Promise<void> {
   // 4. Post-flight counts.
   console.info('');
   console.info('[4/4] counts after wipe …');
-  const after = await tableCounts(supabase);
+  const after = await tableCounts(supabase as never);
   for (const [t, c] of Object.entries(after)) console.info(`  ${t.padEnd(28)} : ${c}`);
   console.info('');
   console.info('=== WIPE COMPLETE ===');

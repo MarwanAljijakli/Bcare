@@ -12,5 +12,5 @@
     }
   },
   "include": ["**/*.ts"],
-  "exclude": ["node_modules", "dist", "migrations"]
+  "exclude": ["node_modules", "dist", "migrations", "supabase"]
 }
