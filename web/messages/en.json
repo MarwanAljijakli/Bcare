@@ -914,6 +914,7 @@
         "greeting": "Hi, {name}.",
         "speak": "Speak",
         "speaking": "Speaking…",
+        "starHint": "Tap Speak to read it aloud and earn a star.",
         "emptySpeak": "Add symbols to begin",
         "cachedInstant": "Instant",
         "holdToSpeak": "Hold to speak",

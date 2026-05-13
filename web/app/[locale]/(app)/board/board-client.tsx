@@ -81,6 +81,14 @@ export function BoardClient({ locale }: { locale: 'en' | 'ar' }) {
   const awardStar = trpc.gamification.awardOnSpeak.useMutation();
 
   const sessionIdRef = useRef<string | null>(null);
+  // Phase 12.A.3 — pending-open promise. When the user rapid-taps the
+  // board, every `handleSelect` calls `ensureSession()` before the first
+  // `openSession.mutateAsync` has resolved. Without this latch, every
+  // tap-before-resolution sees `sessionIdRef.current === null` and spawns
+  // its own session row. Forensic capture (2026-05-13): 5 taps within
+  // 2 seconds produced 4 sessions in the DB. Holding the in-flight
+  // promise here collapses concurrent calls into the same openSession.
+  const sessionPendingRef = useRef<Promise<string | null> | null>(null);
   const sessionStartRef = useRef<number>(0);
   const inputCountRef = useRef(0);
   const outputCountRef = useRef(0);
@@ -107,16 +115,33 @@ export function BoardClient({ locale }: { locale: 'en' | 'ar' }) {
   // Open a session on first interaction. Defer until the user actually
   // taps something so we don't write empty rows for caregivers who
   // navigate to /board to peek.
-  const ensureSession = useCallback(async () => {
-    if (sessionIdRef.current || !child) return;
-    try {
-      const res = await openSession.mutateAsync({ childId: child.id });
-      sessionIdRef.current = res.sessionId;
-      sessionStartRef.current = Date.now();
-    } catch {
-      // Best-effort. The board still works locally; events just don't
-      // persist this session.
-    }
+  //
+  // Phase 12.A.3 — single-flight: hold the in-flight openSession promise
+  // in `sessionPendingRef`. Concurrent callers (rapid taps) await the
+  // SAME promise. Only one session row is created per board mount.
+  const ensureSession = useCallback(async (): Promise<string | null> => {
+    if (sessionIdRef.current) return sessionIdRef.current;
+    if (!child) return null;
+    if (sessionPendingRef.current) return sessionPendingRef.current;
+    const pending = (async () => {
+      try {
+        const res = await openSession.mutateAsync({ childId: child.id });
+        sessionIdRef.current = res.sessionId;
+        sessionStartRef.current = Date.now();
+        return res.sessionId;
+      } catch {
+        // Best-effort. The board still works locally; events just don't
+        // persist this session.
+        return null;
+      } finally {
+        // Whether we got a session or not, clear the latch so a manual
+        // retry (e.g., the next tap after a transient network error) can
+        // re-attempt instead of returning a stale rejected promise.
+        sessionPendingRef.current = null;
+      }
+    })();
+    sessionPendingRef.current = pending;
+    return pending;
   }, [child, openSession]);
 
   // Autosave: every 10s while a session is open, push aggregate counters.
@@ -438,6 +463,21 @@ export function BoardClient({ locale }: { locale: 'en' | 'ar' }) {
         </div>
       </div>
 
+      {/* Phase 12.A.4 — Stars are awarded server-side on Speak success
+       *  ONLY; tapping symbols alone never earns a star. New caregivers
+       *  were tapping for 30 seconds and wondering why the dashboard
+       *  stayed at zero stars. Surface a one-line bilingual hint above
+       *  the speak button the moment the user has tokens but hasn't
+       *  pressed Speak yet. Disappears as soon as they speak (and the
+       *  celebration takes over). */}
+      {tokens.length > 0 && !speaking && (
+        <p
+          role="note"
+          className="text-fg-muted border-primary/20 bg-primary/5 mx-auto mb-1 max-w-md rounded-full border px-3 py-1 text-center text-xs"
+        >
+          {t('starHint')}
+        </p>
+      )}
       <SpeakButton
         speaking={speaking}
         disabled={tokens.length === 0}
