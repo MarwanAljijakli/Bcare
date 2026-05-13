@@ -7,13 +7,25 @@ import { WizardActions } from '../wizard-actions';
 import { useRouter } from '@/i18n/routing';
 import { trpc } from '@/lib/trpc/client';
 
+// fontScale options carry numeric values stored on the sensory profile (1,
+// 1.25, 1.5) but the i18n LOOKUP key cannot contain dots — next-intl uses
+// `.` as a path separator, so `t('fontScale.options.1.25')` would traverse
+// `messages.fontScale.options[1][25]` and fall back to the raw key. We map
+// each numeric to a dot-free i18n suffix (x100 / x125 / x150) for the t()
+// call. The value-on-the-wire stays numeric.
 const FIELDS = [
-  { key: 'motion', options: ['full', 'reduced', 'off'] },
-  { key: 'audio', options: ['full', 'soft', 'off'] },
-  { key: 'contrast', options: ['standard', 'high'] },
-  { key: 'touch', options: ['standard', 'large', 'extra-large'] },
-  { key: 'fontScale', options: [1, 1.25, 1.5] },
+  { key: 'motion', options: ['full', 'reduced', 'off'] as const },
+  { key: 'audio', options: ['full', 'soft', 'off'] as const },
+  { key: 'contrast', options: ['standard', 'high'] as const },
+  { key: 'touch', options: ['standard', 'large', 'extra-large'] as const },
+  { key: 'fontScale', options: [1, 1.25, 1.5] as const },
 ] as const;
+
+const FONT_SCALE_I18N_KEY: Record<1 | 1.25 | 1.5, 'x100' | 'x125' | 'x150'> = {
+  1: 'x100',
+  1.25: 'x125',
+  1.5: 'x150',
+};
 
 type SensoryProfile = {
   motion: 'full' | 'reduced' | 'off';
@@ -76,7 +88,11 @@ export function SensoryStep({ initial }: { initial: Partial<SensoryProfile> }) {
                     onChange={() => setProfile((p) => ({ ...p, [key]: opt as never }))}
                     className="sr-only"
                   />
-                  <span className="text-fg font-medium">{t(`${key}.options.${String(opt)}`)}</span>
+                  <span className="text-fg font-medium">
+                    {key === 'fontScale'
+                      ? t(`fontScale.options.${FONT_SCALE_I18N_KEY[opt as 1 | 1.25 | 1.5]}`)
+                      : t(`${key}.options.${String(opt)}`)}
+                  </span>
                 </label>
               ))}
             </div>

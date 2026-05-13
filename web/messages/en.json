@@ -750,9 +750,9 @@
             "label": "Text size",
             "helper": "Scale text in the dashboard.",
             "options": {
-              "1": "Default",
-              "1.25": "Larger",
-              "1.5": "Largest"
+              "x100": "Default",
+              "x125": "Larger",
+              "x150": "Largest"
             }
           }
         },
