@@ -779,23 +779,20 @@
         },
         "voice": {
           "title": "اختر صوتًا",
-          "subtitle": "اختر صوتًا. سنعرض عيّنة قصيرة لتسمع كيف ستبدو لوحة الطفل.",
+          "subtitle": "اضغط استمع للمقارنة. كلا الصوتين يعملان بالعربية والإنجليزية.",
           "legend": "خيارات الصوت",
           "voices": {
-            "voice-warm": {
+            "charlotte": {
               "label": "دافئ",
               "description": "نبرة لطيفة. صوت قراءة هادئ."
             },
-            "voice-clear": {
-              "label": "واضح",
-              "description": "ساطع، واضح النطق. سهل المتابعة كلمة كلمة."
-            },
-            "voice-soft": {
+            "sarah": {
               "label": "ناعم",
               "description": "طاقة منخفضة. مناسب للغرف الهادئة."
             }
           },
-          "preview": "استمع للصوت",
+          "preview": "استمع",
+          "previewStop": "إيقاف العيّنة",
           "previewsRemaining": "متبقّي {remaining} استماعات"
         },
         "consent": {

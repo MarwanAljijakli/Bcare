@@ -779,23 +779,20 @@
         },
         "voice": {
           "title": "Choose a voice",
-          "subtitle": "Pick a voice. We'll preview a short sample so you can hear how the board will sound.",
+          "subtitle": "Tap Listen to compare. Both voices work in English and Arabic.",
           "legend": "Voice options",
           "voices": {
-            "voice-warm": {
+            "charlotte": {
               "label": "Warm",
               "description": "Soft, gentle pitch. A calm reading voice."
             },
-            "voice-clear": {
-              "label": "Clear",
-              "description": "Bright, articulate. Easy to follow word by word."
-            },
-            "voice-soft": {
+            "sarah": {
               "label": "Soft",
               "description": "Lower energy. Good for quieter rooms."
             }
           },
-          "preview": "Preview voice",
+          "preview": "Listen",
+          "previewStop": "Stop preview",
           "previewsRemaining": "{remaining} previews remaining"
         },
         "consent": {
