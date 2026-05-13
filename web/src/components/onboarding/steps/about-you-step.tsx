@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useState, type FormEvent } from 'react';
+import { useStepError } from '../use-step-error';
 import { WizardActions } from '../wizard-actions';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,6 +19,7 @@ export function AboutYouStep({
   const [fullName, setFullName] = useState(initial.fullName ?? '');
   const [relationship, setRelationship] = useState(initial.relationship ?? '');
   const [errors, setErrors] = useState<{ fullName?: string }>({});
+  const { errorMessage, captureError, clearError } = useStepError();
   const upsert = trpc.onboarding.upsertDraft.useMutation();
 
   async function save(advance: boolean) {
@@ -26,13 +28,18 @@ export function AboutYouStep({
       return;
     }
     setErrors({});
-    await upsert.mutateAsync({
-      step: advance ? 'about_child' : 'about_you',
-      patch: {
-        profile: { fullName: fullName.trim(), relationship: relationship.trim() || undefined },
-      },
-    });
-    router.push(advance ? '/onboarding/about_child' : '/onboarding/welcome');
+    clearError();
+    try {
+      await upsert.mutateAsync({
+        step: advance ? 'about_child' : 'about_you',
+        patch: {
+          profile: { fullName: fullName.trim(), relationship: relationship.trim() || undefined },
+        },
+      });
+      router.push(advance ? '/onboarding/about_child' : '/onboarding/welcome');
+    } catch (e) {
+      captureError(e);
+    }
   }
 
   // Enter-to-advance is wired on each Input via a shared keydown handler so
@@ -92,6 +99,7 @@ export function AboutYouStep({
         onNext={() => save(true)}
         onSaveLater={() => save(false)}
         pending={upsert.isPending}
+        error={errorMessage}
       />
     </section>
   );

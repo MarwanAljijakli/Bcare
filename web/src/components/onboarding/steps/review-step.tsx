@@ -2,7 +2,7 @@
 
 import { CheckCircle2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useStepError } from '../use-step-error';
 import { WizardActions } from '../wizard-actions';
 import { useRouter } from '@/i18n/routing';
 import { trpc } from '@/lib/trpc/client';
@@ -23,15 +23,16 @@ interface ReviewStepProps {
 export function ReviewStep({ draft }: ReviewStepProps) {
   const t = useTranslations('marketing.auth.onboardingWizard.review');
   const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
+  const { errorMessage, captureError, clearError } = useStepError();
   const finalize = trpc.onboarding.finalize.useMutation();
 
   async function commit() {
+    clearError();
     try {
       await finalize.mutateAsync();
       router.push('/dashboard');
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'unknown_error');
+    } catch (e) {
+      captureError(e);
     }
   }
 
@@ -63,12 +64,6 @@ export function ReviewStep({ draft }: ReviewStepProps) {
         />
       </dl>
 
-      {error && (
-        <p role="alert" className="text-danger text-xs">
-          {error}
-        </p>
-      )}
-
       <WizardActions
         backHref="/onboarding/pin"
         onNext={commit}
@@ -76,6 +71,7 @@ export function ReviewStep({ draft }: ReviewStepProps) {
         showSaveLater={false}
         nextLabel={t('cta')}
         pending={finalize.isPending}
+        error={errorMessage}
       />
       <p className="text-fg-subtle text-center text-xs">
         <CheckCircle2 aria-hidden="true" className="me-1 inline-block h-3 w-3" />

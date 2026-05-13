@@ -677,6 +677,12 @@
         "back": "Back",
         "saving": "Saving…",
         "saveLater": "Save and continue later",
+        "errors": {
+          "csrf": "Your session needs a quick refresh. Please tap Continue again to retry.",
+          "signedOut": "You've been signed out. Please sign in again to keep going.",
+          "offline": "We couldn't reach our servers. Check your connection and tap Continue again.",
+          "generic": "Something went wrong on our end. Please tap Continue again — your progress is safe."
+        },
         "welcome": {
           "title": "Welcome to BlueCare.",
           "body": "We'll set up your child's communication board in eight calm steps. You can save and come back anytime — nothing is lost.",

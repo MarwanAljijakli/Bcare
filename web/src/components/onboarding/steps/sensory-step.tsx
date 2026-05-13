@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { useStepError } from '../use-step-error';
 import { WizardActions } from '../wizard-actions';
 import { useRouter } from '@/i18n/routing';
 import { trpc } from '@/lib/trpc/client';
@@ -32,14 +33,20 @@ export function SensoryStep({ initial }: { initial: Partial<SensoryProfile> }) {
     touch: initial.touch ?? 'standard',
     fontScale: initial.fontScale ?? 1,
   });
+  const { errorMessage, captureError, clearError } = useStepError();
   const upsert = trpc.onboarding.upsertDraft.useMutation();
 
   async function save(advance: boolean) {
-    await upsert.mutateAsync({
-      step: advance ? 'vocabulary_level' : 'sensory',
-      patch: { child: { sensoryProfile: profile } },
-    });
-    router.push(advance ? '/onboarding/vocabulary_level' : '/onboarding/about_child');
+    clearError();
+    try {
+      await upsert.mutateAsync({
+        step: advance ? 'vocabulary_level' : 'sensory',
+        patch: { child: { sensoryProfile: profile } },
+      });
+      router.push(advance ? '/onboarding/vocabulary_level' : '/onboarding/about_child');
+    } catch (e) {
+      captureError(e);
+    }
   }
 
   return (
@@ -81,6 +88,7 @@ export function SensoryStep({ initial }: { initial: Partial<SensoryProfile> }) {
         onNext={() => save(true)}
         onSaveLater={() => save(false)}
         pending={upsert.isPending}
+        error={errorMessage}
       />
     </section>
   );

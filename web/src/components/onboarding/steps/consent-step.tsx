@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { useStepError } from '../use-step-error';
 import { WizardActions } from '../wizard-actions';
 import { useRouter } from '@/i18n/routing';
 import { trpc } from '@/lib/trpc/client';
@@ -27,6 +28,7 @@ export function ConsentStep({ initial }: { initial: Partial<ConsentMap> }) {
     analytics_dashboard: initial.analytics_dashboard ?? false,
   });
   const [error, setError] = useState<string | null>(null);
+  const { errorMessage, captureError, clearError } = useStepError();
   const upsert = trpc.onboarding.upsertDraft.useMutation();
 
   async function save(advance: boolean) {
@@ -35,11 +37,16 @@ export function ConsentStep({ initial }: { initial: Partial<ConsentMap> }) {
       return;
     }
     setError(null);
-    await upsert.mutateAsync({
-      step: advance ? 'pin' : 'consent',
-      patch: { consentScopes: scopes },
-    });
-    router.push(advance ? '/onboarding/pin' : '/onboarding/voice');
+    clearError();
+    try {
+      await upsert.mutateAsync({
+        step: advance ? 'pin' : 'consent',
+        patch: { consentScopes: scopes },
+      });
+      router.push(advance ? '/onboarding/pin' : '/onboarding/voice');
+    } catch (e) {
+      captureError(e);
+    }
   }
 
   return (
@@ -85,6 +92,7 @@ export function ConsentStep({ initial }: { initial: Partial<ConsentMap> }) {
         onNext={() => save(true)}
         onSaveLater={() => save(false)}
         pending={upsert.isPending}
+        error={errorMessage}
       />
     </section>
   );

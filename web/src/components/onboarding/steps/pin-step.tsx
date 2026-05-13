@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { useStepError } from '../use-step-error';
 import { WizardActions } from '../wizard-actions';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +15,7 @@ export function PinStep() {
   const [pin, setPin] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const { errorMessage, captureError, clearError } = useStepError();
   const setPinMut = trpc.onboarding.setPin.useMutation();
 
   async function save(advance: boolean) {
@@ -26,8 +28,13 @@ export function PinStep() {
       return;
     }
     setError(null);
-    await setPinMut.mutateAsync({ pin });
-    router.push(advance ? '/onboarding/review' : '/onboarding/consent');
+    clearError();
+    try {
+      await setPinMut.mutateAsync({ pin });
+      router.push(advance ? '/onboarding/review' : '/onboarding/consent');
+    } catch (e) {
+      captureError(e);
+    }
   }
 
   return (
@@ -78,6 +85,7 @@ export function PinStep() {
         onNext={() => save(true)}
         onSaveLater={() => save(false)}
         pending={setPinMut.isPending}
+        error={errorMessage}
       />
     </section>
   );

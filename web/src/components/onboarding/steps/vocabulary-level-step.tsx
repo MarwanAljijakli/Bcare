@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { useStepError } from '../use-step-error';
 import { WizardActions } from '../wizard-actions';
 import { useRouter } from '@/i18n/routing';
 import { trpc } from '@/lib/trpc/client';
@@ -13,14 +14,20 @@ export function VocabularyLevelStep({ initial }: { initial: Level | undefined })
   const t = useTranslations('marketing.auth.onboardingWizard.vocabularyLevel');
   const router = useRouter();
   const [level, setLevel] = useState<Level>(initial ?? 'starter');
+  const { errorMessage, captureError, clearError } = useStepError();
   const upsert = trpc.onboarding.upsertDraft.useMutation();
 
   async function save(advance: boolean) {
-    await upsert.mutateAsync({
-      step: advance ? 'voice' : 'vocabulary_level',
-      patch: { child: { vocabularyLevel: level } },
-    });
-    router.push(advance ? '/onboarding/voice' : '/onboarding/sensory');
+    clearError();
+    try {
+      await upsert.mutateAsync({
+        step: advance ? 'voice' : 'vocabulary_level',
+        patch: { child: { vocabularyLevel: level } },
+      });
+      router.push(advance ? '/onboarding/voice' : '/onboarding/sensory');
+    } catch (e) {
+      captureError(e);
+    }
   }
 
   return (
@@ -58,6 +65,7 @@ export function VocabularyLevelStep({ initial }: { initial: Level | undefined })
         onNext={() => save(true)}
         onSaveLater={() => save(false)}
         pending={upsert.isPending}
+        error={errorMessage}
       />
     </section>
   );

@@ -3,6 +3,7 @@
 import { Volume2, Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useRef, useState } from 'react';
+import { useStepError } from '../use-step-error';
 import { WizardActions } from '../wizard-actions';
 import { useRouter } from '@/i18n/routing';
 import { trpc } from '@/lib/trpc/client';
@@ -22,6 +23,7 @@ export function VoiceStep({ initial }: { initial: string | undefined }) {
   const [previews, setPreviews] = useState(0);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { errorMessage, captureError, clearError } = useStepError();
   const upsert = trpc.onboarding.upsertDraft.useMutation();
 
   async function play(id: string) {
@@ -40,11 +42,16 @@ export function VoiceStep({ initial }: { initial: string | undefined }) {
   }
 
   async function save(advance: boolean) {
-    await upsert.mutateAsync({
-      step: advance ? 'consent' : 'voice',
-      patch: { child: { voiceId } },
-    });
-    router.push(advance ? '/onboarding/consent' : '/onboarding/vocabulary_level');
+    clearError();
+    try {
+      await upsert.mutateAsync({
+        step: advance ? 'consent' : 'voice',
+        patch: { child: { voiceId } },
+      });
+      router.push(advance ? '/onboarding/consent' : '/onboarding/vocabulary_level');
+    } catch (e) {
+      captureError(e);
+    }
   }
 
   return (
@@ -100,6 +107,7 @@ export function VoiceStep({ initial }: { initial: string | undefined }) {
         onNext={() => save(true)}
         onSaveLater={() => save(false)}
         pending={upsert.isPending}
+        error={errorMessage}
       />
     </section>
   );
