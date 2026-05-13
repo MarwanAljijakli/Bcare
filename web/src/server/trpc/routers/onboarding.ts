@@ -160,6 +160,14 @@ export const onboardingRouter = router({
   /**
    * Set the parental PIN as part of the draft. The plaintext never lands
    * in the draft payload — only the bcrypt hash.
+   *
+   * Phase 11.C: must MERGE pinHash into the existing payload, not REPLACE.
+   * Supabase upsert with onConflict overwrites every column in the row —
+   * including the JSONB `payload` — so passing only `{ pinHash }` here
+   * silently wiped out `profile`, `child`, and `consentScopes` from prior
+   * upsertDraft calls. The next step (review → finalize) then read an
+   * empty payload and threw `incomplete_draft`, blocking every real
+   * caregiver from finishing onboarding.
    */
   setPin: protectedMutationProcedure
     .input(z.object({ pin: z.string() }))
@@ -168,15 +176,37 @@ export const onboardingRouter = router({
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'invalid_format' });
       }
       const hash = await hashPin(input.pin);
+      // Read the existing draft so we can preserve profile / child /
+      // consentScopes when we write the pinHash. Mirrors upsertDraft's
+      // read-then-merge pattern.
+      const current = await (
+        ctx.supabase.from('draft_onboarding') as never as {
+          select: (cols: string) => {
+            eq: (
+              col: string,
+              v: string,
+            ) => {
+              maybeSingle: () => Promise<{ data: { payload: DraftPayload } | null }>;
+            };
+          };
+        }
+      )
+        .select('payload')
+        .eq('user_id', ctx.session.userId)
+        .maybeSingle();
+      const merged: DraftPayload = {
+        ...(current.data?.payload ?? {}),
+        pinHash: hash,
+      };
       const { error } = await (
         ctx.supabase.from('draft_onboarding') as never as {
           upsert: (
-            row: { user_id: string; step: string; payload: { pinHash: string } },
+            row: { user_id: string; step: string; payload: DraftPayload },
             opts: { onConflict: string },
           ) => Promise<{ error: { message: string } | null }>;
         }
       ).upsert(
-        { user_id: ctx.session.userId, step: 'pin', payload: { pinHash: hash } },
+        { user_id: ctx.session.userId, step: 'pin', payload: merged },
         { onConflict: 'user_id' },
       );
       if (error) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: error.message });
