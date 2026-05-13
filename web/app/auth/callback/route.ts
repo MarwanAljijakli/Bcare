@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { ensureCsrfCookie } from '@/lib/auth/csrf';
 import { AUTH_MODE } from '@/lib/auth/mode';
 
 /**
@@ -12,6 +13,14 @@ import { AUTH_MODE } from '@/lib/auth/mode';
  * fails or we're in mock mode, we route to /[locale]/login with a
  * `?error=callback` query param so the user gets a friendly message
  * instead of a stack trace.
+ *
+ * Phase 11.A — Fix B: we ALSO mint the CSRF cookie here, before the
+ * redirect. This is the first Route Handler the user hits after email
+ * verification (Route Handlers can `cookies().set()`, Server Components
+ * cannot), so it's the natural place to seed the double-submit token
+ * for every subsequent tRPC mutation. The tRPC client has its own
+ * lazy-mint fallback (Fix A) but this avoids the extra `/api/csrf`
+ * round-trip on the very first onboarding mutation.
  */
 
 export const runtime = 'nodejs';
@@ -40,6 +49,15 @@ export async function GET(request: NextRequest) {
       const errUrl = new URL(safeNext.startsWith('/auth') ? '/' : safeNext, origin);
       errUrl.searchParams.set('error', 'callback');
       return NextResponse.redirect(errUrl);
+    }
+    // Seed the CSRF cookie now while we're in a Route Handler context
+    // (cookies().set() works here; in Server Components it silently
+    // no-ops). Best-effort — the tRPC client's lazy-mint covers the
+    // case where this throws for any reason.
+    try {
+      await ensureCsrfCookie();
+    } catch {
+      /* tRPC client lazy-mint will recover via /api/csrf */
     }
     return NextResponse.redirect(new URL(safeNext, origin));
   } catch {
