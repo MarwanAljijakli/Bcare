@@ -2,6 +2,7 @@ import { Shield } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { NewCaregiverEmpty } from './empty-states';
 import { GreetingHeader } from './greeting-header';
+import { NextMilestoneCard } from './next-milestone-card';
 import { PendingSuggestionsCard } from './pending-suggestions-card';
 import { QuickActionsFooter } from './quick-actions-footer';
 import { RecentSessionsTable } from './recent-sessions-table';
@@ -91,6 +92,14 @@ export function DashboardShell({ payload }: { payload: DashboardPayload }) {
               </div>
               <div className="space-y-6">
                 <StreakCallout hero={payload.hero} locale={payload.caregiver.locale} />
+                {/* Phase 12 B.1 — Next milestone surface. Reuses
+                 *  levels.get; no new router. Slotted above pending
+                 *  suggestions because the goal is more motivating
+                 *  for fresh caregivers than the review-queue is. */}
+                <NextMilestoneCard
+                  childId={payload.activeChildId}
+                  locale={payload.caregiver.locale}
+                />
                 <PendingSuggestionsCard suggestions={payload.suggestions} />
                 <TopSymbolsCard items={payload.topSymbols} locale={payload.caregiver.locale} />
               </div>

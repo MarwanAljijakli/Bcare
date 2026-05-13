@@ -1090,6 +1090,22 @@
               "llm": "AI suggestion"
             }
           },
+          "nextMilestone": {
+            "eyebrow": "Next milestone",
+            "loading": "Loading…",
+            "levels": {
+              "starter": "Starter",
+              "expanding": "Expanding",
+              "conversational": "Conversational",
+              "advanced": "Advanced"
+            },
+            "progressBody": "{mastered} of {active} tiles mastered at this level.",
+            "progressBarLabel": "Level mastery progress",
+            "nextLevel": "Next up: {next}.",
+            "readyForNext": "Ready to advance to {next} — promotion lands tonight.",
+            "emptyBody": "Start with 5 symbols today. Tap, hold-to-speak, build a sentence — every tap counts toward the next milestone.",
+            "emptyCta": "Open the board →"
+          },
           "streak": {
             "eyebrow": "Streak",
             "heading": "Calm consistency",
