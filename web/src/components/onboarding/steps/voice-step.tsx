@@ -5,8 +5,8 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 import { useStepError } from '../use-step-error';
 import { WizardActions } from '../wizard-actions';
-import { useRouter } from '@/i18n/routing';
 import type { AppLocale } from '@/i18n/routing';
+import { useRouter } from '@/i18n/routing';
 import { trpc } from '@/lib/trpc/client';
 
 /**

@@ -59,6 +59,14 @@ export async function GET(request: NextRequest) {
     } catch {
       /* tRPC client lazy-mint will recover via /api/csrf */
     }
+    // Locale policy (Phase 11.B Bug 3): the callback intentionally does
+    // NOT write to public.profiles.preferred_locale. URL-locale is the
+    // canonical source AT CAREGIVER CREATION (stamped into the draft by
+    // AboutYouStep + applied by onboarding.finalize); after creation, the
+    // user changes it via Settings → Language. A magic-link re-visit
+    // from a different /[locale]/* URL must never silently overwrite an
+    // already-saved preferred_locale — which it currently doesn't,
+    // because this handler only refreshes the auth session.
     return NextResponse.redirect(new URL(safeNext, origin));
   } catch {
     const errUrl = new URL('/', origin);

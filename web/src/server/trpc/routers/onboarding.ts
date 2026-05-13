@@ -219,6 +219,16 @@ export const onboardingRouter = router({
     }
 
     // 1. Upsert profile.
+    //    `preferred_locale` MUST come from the draft. AboutYouStep stamps
+    //    the URL locale (`useLocale()`) into the draft on every save —
+    //    that's the source of truth (Phase 11.B Bug 3). If for some
+    //    reason it's still missing here (older drafts written before the
+    //    11.B fix), default to 'en' but log so we can spot the leak.
+    if (!payload.profile.locale) {
+      console.warn('[onboarding.finalize] profile.locale missing — defaulting to en', {
+        userId: ctx.session.userId,
+      });
+    }
     const profileRow = {
       user_id: ctx.session.userId,
       role: 'caregiver' as const,
