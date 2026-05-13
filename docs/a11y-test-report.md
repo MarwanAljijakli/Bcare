@@ -107,7 +107,7 @@ targets on the child-facing communication board.
 
 ## Sign-off (post-manual-pass)
 
-- [ ] VoiceOver pass recorded by: ****\_\_\_**** on ****\_\_\_****
-- [ ] NVDA pass recorded by: ****\_\_\_**** on ****\_\_\_****
+- [ ] VoiceOver pass recorded by: \***\*\_\_\_\*\*** on \***\*\_\_\_\*\***
+- [ ] NVDA pass recorded by: \***\*\_\_\_\*\*** on \***\*\_\_\_\*\***
 - [ ] All "pending" items above cleared or filed as new issues.
 - [ ] Launch gate: this section signed off.

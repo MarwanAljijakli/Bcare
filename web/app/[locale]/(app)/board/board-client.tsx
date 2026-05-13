@@ -503,7 +503,7 @@ export function BoardClient({ locale }: { locale: 'en' | 'ar' }) {
         <div
           role="status"
           aria-live="polite"
-          className="border-warning/40 bg-warning/10 text-fg-muted fixed bottom-24 left-1/2 z-30 -translate-x-1/2 rounded-full border px-4 py-2 text-xs shadow"
+          className="border-warning/40 bg-warning/10 text-fg-muted fixed inset-x-0 bottom-24 z-30 mx-auto w-fit rounded-full border px-4 py-2 text-xs shadow"
         >
           {t('transcribeSlowHint')}
         </div>

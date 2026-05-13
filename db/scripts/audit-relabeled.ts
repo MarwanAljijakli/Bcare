@@ -90,7 +90,7 @@ async function main(): Promise<void> {
             },
             {
               type: 'text',
-              text: visionAuditPrompt({ labelEn: row.label_en, labelAr: row.label_ar }),
+              text: visionAuditPrompt(row.label_en, row.label_ar),
             },
           ],
         },
