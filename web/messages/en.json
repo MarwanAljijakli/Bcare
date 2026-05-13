@@ -1031,7 +1031,7 @@
             "eyebrow": "Today",
             "heading": "Today at a glance",
             "description": "Most recent activity across input modalities, success rate, and sentence length.",
-            "empty": "No activity yet. Once {childName} taps a few symbols, this panel fills in automatically.",
+            "empty": "Start your day with the first session — once a few symbols are tapped, this panel fills in.",
             "successRate": "Success rate",
             "avgSentence": "Avg. sentence length",
             "last24h": "Last 24h inputs",
