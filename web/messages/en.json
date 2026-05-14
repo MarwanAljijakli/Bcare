@@ -928,6 +928,8 @@
         "levelBadgeLabel": "Current level: {level}, {mastered} of {total} symbols mastered",
         "quietModeOn": "Quiet mode",
         "quietModeOff": "Quiet mode",
+        "dashboardLink": "Dashboard",
+        "dashboardLinkAria": "Go back to dashboard",
         "favorites": "Favorites",
         "attribution": "Symbols: ARASAAC · Creative Commons BY-NC-SA · arasaac.org",
         "starEarned": "Nice work!",

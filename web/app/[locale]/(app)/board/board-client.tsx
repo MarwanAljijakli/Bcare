@@ -1,6 +1,7 @@
 'use client';
 
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Home } from 'lucide-react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { BoardSymbol, CategoryKey } from '@/components/board/types';
@@ -394,6 +395,15 @@ export function BoardClient({ locale }: { locale: 'en' | 'ar' }) {
        *  is set or quiet mode is on. */}
       <StarCelebration triggerKey={celebrationKey} silent={quietMode} caption={t('starEarned')} />
       <header className="border-border bg-bg/90 sticky top-0 z-20 flex items-center gap-3 border-b px-4 py-3 backdrop-blur md:px-6">
+        <Link
+          href={`/${locale}/dashboard`}
+          prefetch={false}
+          aria-label={t('dashboardLinkAria')}
+          className="focus-visible:ring-ring border-border bg-bg-elevated text-fg-muted hover:text-fg inline-flex h-10 items-center gap-2 rounded-full border-2 px-4 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-offset-2"
+        >
+          <Home aria-hidden="true" className="h-4 w-4" />
+          {t('dashboardLink')}
+        </Link>
         <div className="min-w-0 flex-1 space-y-1">
           <h1 className="text-fg truncate text-lg font-bold tracking-tight md:text-xl">
             {t('greeting', { name: child.preferred_name || child.full_name })}
