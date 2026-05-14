@@ -41,9 +41,17 @@ export type ReportGeneratedBy = 'cron' | 'manual';
 // Every text field is bilingual (en + ar) so the parent UI can render
 // either language without a re-translation step.
 // ---------------------------------------------------------------------------
+// Phase 2.A truncation fix (2026-05-14): bumped bilingual line cap from
+// 280 → 500. The prior cap rejected valid Arabic clinical phrasing that
+// Sonnet 4.6 produces (typical AR clinical sentences run 200–400 chars
+// once you include the noun phrases + modifying adjectives). Diagnostic
+// evidence: audit_log row 1f0fabe5 (2026-05-14T08:12) captured raw
+// Sonnet output where individual bilingual lines were ~300+ chars and
+// would have failed schema validation even if the response hadn't been
+// cut short by the older max_tokens cap.
 const bilingualLineSchema = z.object({
-  en: z.string().min(1).max(280),
-  ar: z.string().min(1).max(280),
+  en: z.string().min(1).max(500),
+  ar: z.string().min(1).max(500),
 });
 
 export const reportPayloadSchema = z.object({
@@ -52,8 +60,12 @@ export const reportPayloadSchema = z.object({
   specific_suggestions_for_parents: z.array(bilingualLineSchema).min(0).max(8),
   specific_suggestions_for_therapists: z.array(bilingualLineSchema).min(0).max(8),
   risks_or_concerns: z.array(bilingualLineSchema).min(0).max(5),
-  summary_paragraph_english: z.string().min(1).max(2000),
-  summary_paragraph_arabic: z.string().min(1).max(2000),
+  // Bumped 2000 → 2500 in the same Phase 2.A pass — Arabic paragraphs
+  // run ~20% longer than equivalent English at the clinical register
+  // Sonnet 4.6 produces, and the prior cap was the second most likely
+  // post-truncation parse-failure mode.
+  summary_paragraph_english: z.string().min(1).max(2500),
+  summary_paragraph_arabic: z.string().min(1).max(2500),
 });
 
 export type ReportPayload = z.infer<typeof reportPayloadSchema>;
@@ -470,7 +482,16 @@ export async function analyzeChild(args: {
       system: SYSTEM_PROMPT,
       user: userPrompt,
       temperature: 0.2,
-      max_tokens: 1800,
+      // Phase 2.A truncation fix (2026-05-14): 1800 → 8192. Diagnostic
+      // captures from 2026-05-14 (audit_log target_type='claude_payload_debug')
+      // proved stop_reason='max_tokens' was firing at both 1800 (run 1)
+      // and 4096 (run 2 on the abandoned fix/claude-report-parse branch).
+      // 8192 gives durable headroom — a full bilingual payload with
+      // 5 strengths + 5 areas + 5 parent suggestions + 5 therapist
+      // suggestions + ≤3 risks + two ~2k-char summaries is ~6.5K tokens.
+      // Cost at Sonnet 4.6 output pricing ($15/M): 8192 × $15/1M = $0.123
+      // worst case, well under MAX_COST_PER_REPORT_USD = $0.50.
+      max_tokens: 8192,
     },
   });
 
@@ -512,6 +533,33 @@ export async function analyzeChild(args: {
 
   const payload = safeParsePayload(result.text);
   if (!payload) {
+    // Phase 2.A TEMPORARY DIAGNOSTIC — distinct target_type from the
+    // older claude_payload_debug rows so cleanup queries can target
+    // this batch unambiguously. REMOVE in a follow-up PR after two
+    // consecutive clean generations land on main.
+    try {
+      await (
+        args.supabaseAdmin.from('audit_log') as never as {
+          insert: (row: Record<string, unknown>) => Promise<unknown>;
+        }
+      ).insert({
+        actor_id: null,
+        action: 'admin_action',
+        target_type: 'claude_report_parse_fail',
+        target_id: args.childId,
+        metadata: {
+          kind: 'claude_report_parse_fail_v3_truncation_fix',
+          raw_text: result.text.slice(0, 8000),
+          stop_reason: result.stop_reason,
+          input_tokens: result.input_tokens,
+          output_tokens: result.output_tokens,
+          cap_attempted: 8192,
+          target_child_id: args.childId,
+        },
+      });
+    } catch {
+      /* diagnostic best-effort — never fail the analyzer on log write */
+    }
     // Persist a "raw_text" fallback row so the operator can inspect
     // what Claude actually returned. This is rare but should not
     // silently drop the cost.
