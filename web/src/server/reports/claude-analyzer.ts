@@ -533,33 +533,6 @@ export async function analyzeChild(args: {
 
   const payload = safeParsePayload(result.text);
   if (!payload) {
-    // Phase 2.A TEMPORARY DIAGNOSTIC — distinct target_type from the
-    // older claude_payload_debug rows so cleanup queries can target
-    // this batch unambiguously. REMOVE in a follow-up PR after two
-    // consecutive clean generations land on main.
-    try {
-      await (
-        args.supabaseAdmin.from('audit_log') as never as {
-          insert: (row: Record<string, unknown>) => Promise<unknown>;
-        }
-      ).insert({
-        actor_id: null,
-        action: 'admin_action',
-        target_type: 'claude_report_parse_fail',
-        target_id: args.childId,
-        metadata: {
-          kind: 'claude_report_parse_fail_v3_truncation_fix',
-          raw_text: result.text.slice(0, 8000),
-          stop_reason: result.stop_reason,
-          input_tokens: result.input_tokens,
-          output_tokens: result.output_tokens,
-          cap_attempted: 8192,
-          target_child_id: args.childId,
-        },
-      });
-    } catch {
-      /* diagnostic best-effort — never fail the analyzer on log write */
-    }
     // Persist a "raw_text" fallback row so the operator can inspect
     // what Claude actually returned. This is rare but should not
     // silently drop the cost.
