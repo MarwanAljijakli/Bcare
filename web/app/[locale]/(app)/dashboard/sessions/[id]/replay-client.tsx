@@ -234,7 +234,7 @@ export function SessionReplayClient({ locale, sessionId }: Props) {
                   className="border-border bg-bg-elevated flex items-center gap-3 rounded-xl border p-3"
                   dir={locale === 'ar' ? 'rtl' : 'ltr'}
                 >
-                  <span className="text-fg-subtle w-6 text-right text-xs tabular-nums">
+                  <span className="text-fg-subtle w-6 text-end text-xs tabular-nums">
                     {idx + 1}
                   </span>
                   <Icon aria-hidden="true" className="text-fg-muted h-4 w-4 flex-shrink-0" />

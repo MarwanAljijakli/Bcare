@@ -31,6 +31,7 @@ interface CopyShape {
   generating: string;
   rateLimited: string;
   insufficientData: string;
+  childNotFound: string;
   capReached: string;
   costTooHigh: string;
   unknown: string;
@@ -63,6 +64,8 @@ const COPY: Record<'en' | 'ar', CopyShape> = {
     rateLimited: 'You can generate one report per child per day.',
     insufficientData:
       'Not enough data this week — we need at least 3 sessions for a useful report.',
+    childNotFound:
+      "We couldn't find your child's profile to summarize. Please refresh the page; if it keeps happening, contact support.",
     capReached: "This child's monthly AI cap is reached. Reports resume next month.",
     costTooHigh:
       'The report would have exceeded our $0.50 per-generation cap. Try again next week.',
@@ -93,6 +96,8 @@ const COPY: Record<'en' | 'ar', CopyShape> = {
     generating: 'جارٍ الإنشاء…',
     rateLimited: 'يمكنك إنشاء تقرير واحد لكل طفل في اليوم.',
     insufficientData: 'لا توجد بيانات كافية هذا الأسبوع — نحتاج ٣ جلسات على الأقلّ لتقرير مفيد.',
+    childNotFound:
+      'تعذّر العثور على ملف طفلك لإعداد الملخّص. يُرجى تحديث الصفحة؛ إذا استمرّت المشكلة فراسلنا.',
     capReached: 'سقف الذكاء الاصطناعي الشهري لهذا الطفل قد تمّ. تستأنف التقارير الشهر القادم.',
     costTooHigh: 'تجاوز التقرير سقف $٠.٥٠ لكلّ إنشاء. حاول الأسبوع المقبل.',
     unknown: 'حدث خطأ أثناء إنشاء التقرير.',
@@ -172,13 +177,15 @@ export function InsightsClient({
       ? t.rateLimited
       : generateMut.error?.message === 'insufficient_data'
         ? t.insufficientData
-        : generateMut.error?.message === 'monthly_cap_reached'
-          ? t.capReached
-          : generateMut.error?.message === 'cost_too_high'
-            ? t.costTooHigh
-            : generateMut.error
-              ? t.unknown
-              : null;
+        : generateMut.error?.message === 'child_not_found'
+          ? t.childNotFound
+          : generateMut.error?.message === 'monthly_cap_reached'
+            ? t.capReached
+            : generateMut.error?.message === 'cost_too_high'
+              ? t.costTooHigh
+              : generateMut.error
+                ? t.unknown
+                : null;
 
   return (
     <main className="container space-y-8 py-10">

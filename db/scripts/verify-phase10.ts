@@ -37,9 +37,9 @@ async function main(): Promise<void> {
     },
   ];
   for (const p of probes) {
-    const rows = (await sql(p.query)) as Row[];
-    const first = rows?.[0];
-    console.info(`  ${p.label}:`, first ?? rows);
+    const res = await sql<Row>(p.query);
+    const first = res.rows[0];
+    console.info(`  ${p.label}:`, first ?? res.rows);
   }
 }
 

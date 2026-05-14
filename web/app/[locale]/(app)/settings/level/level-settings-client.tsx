@@ -155,7 +155,7 @@ export function LevelSettingsClient({
           aria-live="polite"
           className="border-success/30 bg-success/5 text-success rounded-xl border px-4 py-3 text-sm font-medium"
         >
-          <CheckCircle2 className="mr-1 inline h-4 w-4" /> {toast}
+          <CheckCircle2 className="me-1 inline h-4 w-4" /> {toast}
         </div>
       )}
 
@@ -164,7 +164,7 @@ export function LevelSettingsClient({
           role="note"
           className="border-primary/30 bg-primary/5 text-primary rounded-xl border px-4 py-3 text-sm font-medium leading-relaxed"
         >
-          <Sparkles className="mr-1 inline h-4 w-4" />
+          <Sparkles className="me-1 inline h-4 w-4" />
           {t.readyHint}
         </div>
       )}

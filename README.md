@@ -35,12 +35,12 @@ a cron, and per-child vocabulary levels auto-promote at 80% mastery.
 
 ### Try it
 
-| Audience            | Link                                            |
-| ------------------- | ----------------------------------------------- |
-| English landing     | <https://bcare-ten.vercel.app/en>               |
-| Arabic landing (RTL)| <https://bcare-ten.vercel.app/ar>               |
-| Sign up             | <https://bcare-ten.vercel.app/en/signup>        |
-| Help center         | <https://bcare-ten.vercel.app/en/help>          |
+| Audience             | Link                                     |
+| -------------------- | ---------------------------------------- |
+| English landing      | <https://bcare-ten.vercel.app/en>        |
+| Arabic landing (RTL) | <https://bcare-ten.vercel.app/ar>        |
+| Sign up              | <https://bcare-ten.vercel.app/en/signup> |
+| Help center          | <https://bcare-ten.vercel.app/en/help>   |
 
 A 10-step click-path walkthrough is in
 [`docs/demo-walkthrough.md`](docs/demo-walkthrough.md). Operator

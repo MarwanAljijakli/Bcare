@@ -385,7 +385,7 @@ function ProviderRow({
         <Volume2 aria-hidden="true" className="ms-1 h-4 w-4" />
         <span className="ms-2 text-xs font-semibold">{label}</span>
       </Button>
-      <div className="min-w-0 flex-1 text-right text-xs leading-tight">
+      <div className="min-w-0 flex-1 text-end text-xs leading-tight">
         {result && 'error' in result ? (
           <span className="text-amber-700 dark:text-amber-300">{result.error}</span>
         ) : result ? (

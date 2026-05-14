@@ -88,7 +88,13 @@ export interface ChildMetricsSnapshot {
 export interface AnalyzeResult {
   reportId: string | null;
   childId: string;
-  skipped: 'insufficient_data' | 'cap_reached' | 'cost_too_high' | null;
+  /**
+   * Phase 12 — split the "no child row" case from the "<3 sessions" case so
+   * the route handler can return NOT_FOUND vs PRECONDITION_FAILED accurately
+   * instead of the old catch-all 'insufficient_data' that lied about the
+   * cause when the underlying problem was a SQL error / missing child.
+   */
+  skipped: 'insufficient_data' | 'child_not_found' | 'cap_reached' | 'cost_too_high' | null;
   costUsd: number;
   inputTokens: number;
   outputTokens: number;
@@ -107,6 +113,12 @@ async function aggregateMetrics(
   const endIso = periodEnd.toISOString();
 
   // Child profile.
+  // Phase 12 — column is `preferred_locale` on public.children, not
+  // `locale`. The previous typo caused a 42703 from PostgREST on every
+  // call, which set `childRes.data = null` and made aggregateMetrics
+  // return null. Reports.generate then mapped that to 'insufficient_data'
+  // even when the child existed and had hundreds of sessions. This
+  // selectively killed EVERY Claude report generation since launch.
   const childRes = await (
     supabaseAdmin.from('children') as never as {
       select: (cols: string) => {
@@ -118,7 +130,7 @@ async function aggregateMetrics(
             data: {
               id: string;
               preferred_name: string | null;
-              locale: 'en' | 'ar' | null;
+              preferred_locale: 'en' | 'ar' | null;
               vocabulary_level: VocabLevel | null;
             } | null;
           }>;
@@ -126,11 +138,17 @@ async function aggregateMetrics(
       };
     }
   )
-    .select('id, preferred_name, locale, vocabulary_level')
+    .select('id, preferred_name, preferred_locale, vocabulary_level')
     .eq('id', childId)
     .maybeSingle();
   const child = childRes.data;
-  if (!child) return null;
+  if (!child) {
+    // Use a sentinel result the caller distinguishes from insufficient_data.
+    // We bubble this up via a dedicated property on the snapshot return so
+    // the wrapper analyzeChild() can throw NOT_FOUND instead of the old
+    // misleading PRECONDITION_FAILED('insufficient_data').
+    return { __notFound: true } as unknown as ChildMetricsSnapshot;
+  }
 
   // Sessions in window.
   const sessionsRes = await (
@@ -294,7 +312,7 @@ async function aggregateMetrics(
   return {
     childId,
     childPreferredName: child.preferred_name,
-    childLocale: child.locale ?? 'en',
+    childLocale: child.preferred_locale ?? 'en',
     vocabularyLevel: child.vocabulary_level ?? 'starter',
     period: { start: startIso, end: endIso, type: periodType },
     sessions: {
@@ -423,6 +441,19 @@ export async function analyzeChild(args: {
       reportId: null,
       childId: args.childId,
       skipped: 'insufficient_data',
+      costUsd: 0,
+      inputTokens: 0,
+      outputTokens: 0,
+    };
+  }
+  // Phase 12.C.2 — child-not-found is now distinguished from
+  // <MIN_SESSIONS, so the UI can show "child not found" instead of the
+  // misleading "not enough data" copy.
+  if ((snapshot as unknown as { __notFound?: boolean }).__notFound) {
+    return {
+      reportId: null,
+      childId: args.childId,
+      skipped: 'child_not_found',
       costUsd: 0,
       inputTokens: 0,
       outputTokens: 0,

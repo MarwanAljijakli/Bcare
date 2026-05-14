@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useState, type FormEvent } from 'react';
+import { useStepError } from '../use-step-error';
 import { WizardActions } from '../wizard-actions';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,6 +26,7 @@ export function AboutChildStep({
   const [dob, setDob] = useState(initial.dateOfBirth ?? '');
   const [locale, setLocale] = useState<'en' | 'ar'>(initial.locale ?? 'en');
   const [error, setError] = useState<string | null>(null);
+  const { errorMessage, captureError, clearError } = useStepError();
   const upsert = trpc.onboarding.upsertDraft.useMutation();
 
   async function save(advance: boolean) {
@@ -33,18 +35,23 @@ export function AboutChildStep({
       return;
     }
     setError(null);
-    await upsert.mutateAsync({
-      step: advance ? 'sensory' : 'about_child',
-      patch: {
-        child: {
-          fullName: fullName.trim(),
-          preferredName: preferredName.trim() || undefined,
-          dateOfBirth: dob || undefined,
-          locale,
+    clearError();
+    try {
+      await upsert.mutateAsync({
+        step: advance ? 'sensory' : 'about_child',
+        patch: {
+          child: {
+            fullName: fullName.trim(),
+            preferredName: preferredName.trim() || undefined,
+            dateOfBirth: dob || undefined,
+            locale,
+          },
         },
-      },
-    });
-    router.push(advance ? '/onboarding/sensory' : '/onboarding/about_you');
+      });
+      router.push(advance ? '/onboarding/sensory' : '/onboarding/about_you');
+    } catch (e) {
+      captureError(e);
+    }
   }
 
   return (
@@ -124,6 +131,7 @@ export function AboutChildStep({
         onNext={() => save(true)}
         onSaveLater={() => save(false)}
         pending={upsert.isPending}
+        error={errorMessage}
       />
     </section>
   );

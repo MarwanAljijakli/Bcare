@@ -44,23 +44,27 @@ export async function GET(req: NextRequest) {
   let totalSuggestions = 0;
   let totalAdvances = 0;
 
-  // Probe /api/health/auth before doing any work — if the project ref
-  // drifts (Module 2.A.1.fix postmortem), audit-log the drift instead
-  // of silently writing personalization data to the wrong project.
+  // Phase 12.A.1 — observability-only project-ref check, IN-PROCESS.
+  //
+  // The old version called `/api/health/auth` over HTTP from the cron
+  // handler. Vercel's deployment-protection layer 401s every server-
+  // internal request to public preview URLs, which made `probe.ok ===
+  // false` every night → handler returned 503 BEFORE recomputing. Three
+  // consecutive cron runs were lost this way (audit_log target_type=
+  // config_drift, probeStatus=401 on 2026-05-11, 12, 13). progress_metrics
+  // stopped updating, mastery_per_child_symbol never refreshed, and the
+  // dashboard froze at zero.
+  //
+  // Replace with an in-process check: derive the project ref from
+  // `NEXT_PUBLIC_SUPABASE_URL` and compare to EXPECTED_SUPABASE_PROJECT_REF.
+  // Audit-log mismatches; NEVER block. The recompute is $0; even if it
+  // somehow ran against the wrong project, the worst case is a wasted
+  // CPU minute, not a billing event. Observability, not authorization.
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
-    const probe = await fetch(`${baseUrl}/api/health/auth`, { method: 'GET' });
-    const probeBody = (await probe.json().catch(() => ({}))) as {
-      ok?: boolean;
-      supabaseProject?: string;
-      reason?: string;
-      bypassActive?: boolean;
-      vercelEnv?: string | null;
-    };
-    const expectedRef = 'ikaaxfhenfbpfjqboixk';
-    const driftDetected =
-      !probe.ok || probeBody.ok !== true || probeBody.supabaseProject !== expectedRef;
-    if (driftDetected) {
+    const supaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
+    const observedProject = supaUrl.match(/^https:\/\/([a-z0-9]+)\.supabase\.co/i)?.[1] ?? null;
+    const expectedProject = process.env.EXPECTED_SUPABASE_PROJECT_REF ?? observedProject;
+    if (observedProject !== expectedProject) {
       await (
         supabaseAdmin.from('audit_log') as never as {
           insert: (row: Record<string, unknown>) => Promise<unknown>;
@@ -72,45 +76,16 @@ export async function GET(req: NextRequest) {
         target_id: null,
         metadata: {
           kind: 'config_drift_detected',
-          probeStatus: probe.status,
-          probeOk: probeBody.ok,
-          observedProject: probeBody.supabaseProject ?? null,
-          expectedProject: expectedRef,
-          reason: probeBody.reason ?? null,
+          source: 'in_process_env_check',
+          observedProject,
+          expectedProject,
         },
       });
-      return NextResponse.json(
-        {
-          ok: false,
-          reason: 'config_drift',
-          observedProject: probeBody.supabaseProject ?? null,
-          expectedProject: expectedRef,
-        },
-        { status: 503 },
-      );
-    }
-    // Phase 10.C — the auth bypass flip means bypassActive should ALWAYS
-    // be false in production. If we ever observe it true, log so the
-    // operator notices on the next morning's cron audit.
-    if (probeBody.bypassActive === true && probeBody.vercelEnv === 'production') {
-      await (
-        supabaseAdmin.from('audit_log') as never as {
-          insert: (row: Record<string, unknown>) => Promise<unknown>;
-        }
-      ).insert({
-        actor_id: null,
-        action: 'admin_action',
-        target_type: 'auth_bypass',
-        target_id: null,
-        metadata: {
-          kind: 'auth_bypass_unexpectedly_active',
-          vercelEnv: probeBody.vercelEnv,
-        },
-      });
+      // Phase 12.A.1 — log, do NOT block. The cron must run.
     }
   } catch {
-    // Health probe itself failed — let the recompute run anyway since
-    // the worst case is wasted CPU. Module 9 escalates to Sentry.
+    // The check itself failed — that's a code bug, not an auth issue.
+    // Don't let it stop the recompute.
   }
 
   try {

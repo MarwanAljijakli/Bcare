@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { ensureCsrfCookie } from '@/lib/auth/csrf';
 import { AUTH_MODE } from '@/lib/auth/mode';
 
 /**
@@ -12,6 +13,14 @@ import { AUTH_MODE } from '@/lib/auth/mode';
  * fails or we're in mock mode, we route to /[locale]/login with a
  * `?error=callback` query param so the user gets a friendly message
  * instead of a stack trace.
+ *
+ * Phase 11.A — Fix B: we ALSO mint the CSRF cookie here, before the
+ * redirect. This is the first Route Handler the user hits after email
+ * verification (Route Handlers can `cookies().set()`, Server Components
+ * cannot), so it's the natural place to seed the double-submit token
+ * for every subsequent tRPC mutation. The tRPC client has its own
+ * lazy-mint fallback (Fix A) but this avoids the extra `/api/csrf`
+ * round-trip on the very first onboarding mutation.
  */
 
 export const runtime = 'nodejs';
@@ -41,6 +50,23 @@ export async function GET(request: NextRequest) {
       errUrl.searchParams.set('error', 'callback');
       return NextResponse.redirect(errUrl);
     }
+    // Seed the CSRF cookie now while we're in a Route Handler context
+    // (cookies().set() works here; in Server Components it silently
+    // no-ops). Best-effort — the tRPC client's lazy-mint covers the
+    // case where this throws for any reason.
+    try {
+      await ensureCsrfCookie();
+    } catch {
+      /* tRPC client lazy-mint will recover via /api/csrf */
+    }
+    // Locale policy (Phase 11.B Bug 3): the callback intentionally does
+    // NOT write to public.profiles.preferred_locale. URL-locale is the
+    // canonical source AT CAREGIVER CREATION (stamped into the draft by
+    // AboutYouStep + applied by onboarding.finalize); after creation, the
+    // user changes it via Settings → Language. A magic-link re-visit
+    // from a different /[locale]/* URL must never silently overwrite an
+    // already-saved preferred_locale — which it currently doesn't,
+    // because this handler only refreshes the auth session.
     return NextResponse.redirect(new URL(safeNext, origin));
   } catch {
     const errUrl = new URL('/', origin);

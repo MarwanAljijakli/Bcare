@@ -448,6 +448,15 @@ export const reportsRouter = router({
           message: 'insufficient_data',
         });
       }
+      // Phase 12.C.2 — surface child-not-found separately from the
+      // session-count check so the UI banner stops blaming session count
+      // when the real failure is a missing child / SQL typo / RLS.
+      if (result.skipped === 'child_not_found') {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'child_not_found',
+        });
+      }
       if (result.skipped === 'cap_reached') {
         throw new TRPCError({
           code: 'PRECONDITION_FAILED',

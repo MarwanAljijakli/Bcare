@@ -1,8 +1,10 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useState, type FormEvent } from 'react';
+import { useStepError } from '../use-step-error';
 import { WizardActions } from '../wizard-actions';
+import type { AppLocale } from '@/i18n/routing';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useRouter } from '@/i18n/routing';
@@ -15,9 +17,16 @@ export function AboutYouStep({
 }) {
   const t = useTranslations('marketing.auth.onboardingWizard.aboutYou');
   const router = useRouter();
+  // URL locale is the source of truth for the caregiver's preferred
+  // language. The user is provably in /en/onboarding or /ar/onboarding
+  // when this component renders. We stamp it into the draft on every
+  // save so finalize() commits the right value to profiles.preferred_locale
+  // instead of silently defaulting to 'en' (Phase 11.B Bug 3).
+  const urlLocale = useLocale() as AppLocale;
   const [fullName, setFullName] = useState(initial.fullName ?? '');
   const [relationship, setRelationship] = useState(initial.relationship ?? '');
   const [errors, setErrors] = useState<{ fullName?: string }>({});
+  const { errorMessage, captureError, clearError } = useStepError();
   const upsert = trpc.onboarding.upsertDraft.useMutation();
 
   async function save(advance: boolean) {
@@ -26,13 +35,22 @@ export function AboutYouStep({
       return;
     }
     setErrors({});
-    await upsert.mutateAsync({
-      step: advance ? 'about_child' : 'about_you',
-      patch: {
-        profile: { fullName: fullName.trim(), relationship: relationship.trim() || undefined },
-      },
-    });
-    router.push(advance ? '/onboarding/about_child' : '/onboarding/welcome');
+    clearError();
+    try {
+      await upsert.mutateAsync({
+        step: advance ? 'about_child' : 'about_you',
+        patch: {
+          profile: {
+            fullName: fullName.trim(),
+            relationship: relationship.trim() || undefined,
+            locale: urlLocale,
+          },
+        },
+      });
+      router.push(advance ? '/onboarding/about_child' : '/onboarding/welcome');
+    } catch (e) {
+      captureError(e);
+    }
   }
 
   // Enter-to-advance is wired on each Input via a shared keydown handler so
@@ -92,6 +110,7 @@ export function AboutYouStep({
         onNext={() => save(true)}
         onSaveLater={() => save(false)}
         pending={upsert.isPending}
+        error={errorMessage}
       />
     </section>
   );

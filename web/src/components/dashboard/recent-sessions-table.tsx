@@ -46,7 +46,7 @@ export function RecentSessionsTable({
         <div className="-mx-1 overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-fg-subtle border-border-muted border-b text-left text-xs font-semibold uppercase tracking-wide">
+              <tr className="text-fg-subtle border-border-muted border-b text-start text-xs font-semibold uppercase tracking-wide">
                 <th scope="col" className="px-2 py-2.5 font-semibold">
                   {t('sessions.col.date')}
                 </th>
