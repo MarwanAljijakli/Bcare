@@ -928,6 +928,8 @@
         "levelBadgeLabel": "المستوى الحالي: {level}، أتقن {mastered} من {total} رمزًا",
         "quietModeOn": "الوضع الهادئ",
         "quietModeOff": "الوضع الهادئ",
+        "dashboardLink": "لوحة التحكم",
+        "dashboardLinkAria": "العودة إلى لوحة التحكم",
         "favorites": "المفضّلة",
         "attribution": "الرموز: ARASAAC · رخصة المشاع الإبداعي BY-NC-SA · arasaac.org",
         "starEarned": "أحسنت!",
