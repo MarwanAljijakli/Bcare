@@ -86,24 +86,3 @@ Then open http://localhost:3000 (English) or http://localhost:3000/ar (Arabic, R
 
 The `/board` route ships ≤ 180 KB gzipped initial JS.
 
-## Branding
-
-Brand tokens live in [`shared/tokens.ts`](./shared/tokens.ts) and are exposed as CSS
-variables and a Tailwind theme. Do not introduce raw color values in components — always
-reference tokens.
-
-## License
-
-Source code: UNLICENSED — copyright Jeddah International College / BlueCare team.
-Pictograms: ARASAAC, CC BY-NC-SA, attributed in `docs/attributions.md`.
-
-## Authors
-
-Senior Project — Jeddah International College, Computer Science Department.
-
-- Somaya Nather Dayan
-- Masa Malik Alalawi
-- Alaa Khalid Al-Ghamdi
-- Fadwa Ibrahim Abushanab
-
-Supervisor: Dr. Hasanin Barhamtoshy.
