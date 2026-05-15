@@ -2,9 +2,10 @@
  * Brand asset path registry. Components import these constants instead of
  * hardcoding paths so a future renaming is a one-line change.
  *
- * The SVGs themselves live at `shared/brand/*.svg` and are also copied to
- * `web/public/brand/*` at build time (see `scripts/sync-brand-assets.mjs`,
- * wired into `pnpm dev` and `pnpm build`).
+ * The mark itself lives at `shared/brand/logo-mark.png` and is copied to
+ * `web/public/brand/` at build time (see `scripts/sync-brand-assets.mjs`,
+ * wired into `pnpm dev` and `pnpm build`). It is the whole brand identity —
+ * no separate wordmark or lockup variants.
  */
 
 export const BRAND = {
@@ -26,17 +27,6 @@ export const BRAND = {
   },
   // Public asset paths. Resolved against /brand/ at runtime.
   assets: {
-    mark: '/brand/logo-mark.svg',
-    markMono: '/brand/logo-mark-mono.svg',
-    wordmark: { en: '/brand/logo-wordmark-en.svg', ar: '/brand/logo-wordmark-ar.svg' },
-    lockup: { en: '/brand/logo-lockup-en.svg', ar: '/brand/logo-lockup-ar.svg' },
-    favicon: {
-      ico: '/favicon.ico',
-      png16: '/favicon-16.png',
-      png32: '/favicon-32.png',
-      png180: '/apple-touch-icon.png',
-      png192: '/icon-192.png',
-      png512: '/icon-512.png',
-    },
+    mark: '/brand/logo-mark.png',
   },
 } as const;

@@ -23,7 +23,7 @@ export function OrganizationJsonLd({ locale }: { locale: AppLocale }) {
         '@type': 'Organization',
         name: SITE.name[locale],
         url: SITE.baseUrl,
-        logo: `${SITE.baseUrl}/brand/logo-mark.svg`,
+        logo: `${SITE.baseUrl}/brand/logo-mark.png`,
         description: SITE.defaultDescription[locale],
         founder: [
           { '@type': 'Person', name: 'Somaya Nather Dayan' },
